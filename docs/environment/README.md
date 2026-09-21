@@ -141,3 +141,36 @@ times must not be presented as desktop GPU results or evidence of 60 FPS. Added
 geometric/texture detail increases raster cost even when draw calls decrease.
 A desktop GPU frame-budget check remains necessary before asserting a target
 frame rate.
+
+
+## Grass scrolling follow-up
+
+The grass instance updates originally changed only X and Y for road bends and
+crests. Their Z positions stayed fixed while houses and hay rolls advanced,
+so the blades remained static relative to the moving bike. Grass now advances
+by the same travelled world distance as the roadside props, wraps within its
+90-unit verge strip, and samples the rendered terrain again at each new root.
+Blade shape, density, colors and wind strength are unchanged.
+
+Validation of this correction:
+
+- Production build and **12/12** targeted environment/road-grade tests pass.
+  Two new tests cover scrolling/recycling at prop speed, stop behavior, and
+  root contact/road clearance on ±12% slopes and bends after long rides.
+- `node scripts/check-grass-scroll.cjs`: **75/75** production-renderer views
+  (five stages × five cameras × -12%, 0%, +12%). Camera and wind time are
+  frozen and only the actual grass is drawn for the pixel comparison. Every
+  view shows grass movement; all 6,000 roots advance at the same rate as a
+  house and match the shared terrain sampler. Grass remains **2 draw calls /
+  54,000 triangles**, with no browser/shader errors. Results are stored in
+  `grass-scroll-browser-results.json`.
+- Warmed stage-1 terrain/prop CPU updates: median **3.9 ms**,
+  p95 **5.6 ms**, 30 samples after 10 warm-up updates. This is
+  CPU update cost only, not a new whole-scene GPU frame-rate measurement.
+- `grass-scroll-start.png` and `grass-scroll-forward.png` show the full running
+  production renderer at the same fixed Roadside camera and wind time,
+  separated by half a second of world travel at a displayed 25 km/h.
+
+The original full-suite counts and performance table above describe the
+initial overhaul. The user has since run that branch locally and reports
+acceptable performance; local GPU FPS has not been instrumented here.

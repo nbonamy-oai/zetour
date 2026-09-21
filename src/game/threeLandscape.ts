@@ -62,6 +62,9 @@ interface Ribbon {
   offsets: Float32Array;
 }
 
+const GRASS_FRONT_Z = 10;
+const GRASS_DEPTH = 90;
+
 export class ThreeLandscape {
   readonly root = new THREE.Group();
   private readonly ground = new THREE.Group();
@@ -199,12 +202,17 @@ export class ThreeLandscape {
     this.resources.time.value = time;
     if (distance === this.lastDistance && this.pitch === this.lastPitch && this.riderZ === this.lastRiderZ) return;
     this.lastDistance = distance; this.lastPitch = this.pitch; this.lastRiderZ = this.riderZ;
+    const grassTravel = THREE.MathUtils.euclideanModulo(distance, GRASS_DEPTH);
     this.grass.forEach((grass,index) => {
       const offsets=this.grassOffsets[index], matrices=grass.instanceMatrix.array;
       for(let i=0;i<grass.count;i++) {
-        const z=offsets[i*3+2];
-        matrices[i*16+12]=offsets[i*3]+roadBend(z,distance);
-        matrices[i*16+13]=offsets[i*3+1]+roadSurfaceHeight(z,this.pitch,this.riderZ);
+        // Scroll at the same world speed as the other roadside scenery,
+        // recycling behind the camera into the distant verge.
+        const x=offsets[i*3];
+        const z=GRASS_FRONT_Z-THREE.MathUtils.euclideanModulo(GRASS_FRONT_Z-offsets[i*3+2]-grassTravel,GRASS_DEPTH);
+        matrices[i*16+12]=x+roadBend(z,distance);
+        matrices[i*16+13]=terrainHeight(x,z)+roadSurfaceHeight(z,this.pitch,this.riderZ);
+        matrices[i*16+14]=z;
       }
       grass.instanceMatrix.needsUpdate=true;
     });
@@ -235,7 +243,7 @@ export class ThreeLandscape {
       grass.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       for (let i=0;i<grass.count;i++) {
         // Bias coverage toward the road, with a deliberate gravel clearance.
-        const x = side * (6.22 + Math.pow(random(), 2) * 14), z = 10 - random() * 90;
+        const x = side * (6.22 + Math.pow(random(), 2) * 14), z = GRASS_FRONT_Z - random() * GRASS_DEPTH;
         offsets.set([x,terrainHeight(x,z),z],i*3);
         dummy.position.set(x,terrainHeight(x,z),z); dummy.rotation.y = random() * Math.PI;
         const size = 0.55 + random() * 0.95; dummy.scale.set(size, size * 0.68, size); dummy.updateMatrix();

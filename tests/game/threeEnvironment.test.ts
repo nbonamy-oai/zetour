@@ -12,6 +12,59 @@ const surface = (point: THREE.Vector3, distance: number, pitch: number): number 
   terrainHeight(point.x - roadBend(point.z, distance), point.z) + roadSurfaceHeight(point.z, pitch);
 
 describe("3D environment grounding and ownership", () => {
+  it("scrolls grass with the roadside scenery and recycles it into the distant verge", () => {
+    const resources = new EnvironmentMaterials(), landscape = new ThreeLandscape(resources);
+    const grass: THREE.InstancedMesh[] = [];
+    landscape.root.traverse(object => {
+      if (object instanceof THREE.InstancedMesh && object.name === "Wind-driven roadside blades") grass.push(object);
+    });
+    expect(grass).toHaveLength(2);
+    const scenery = new THREE.Object3D(); prepare(scenery, 15, -10);
+    groundScenery(scenery, 0, 0);
+    const roots = grass.map(mesh => mesh.instanceMatrix.array.slice());
+    const previousSceneryZ = scenery.position.z;
+    const advance = 13.5 / 60; // One game frame at a displayed 25 km/h.
+    scenery.position.z += advance;
+    groundScenery(scenery, advance, 0); landscape.update(advance, 1 / 60);
+    let recycled = 0;
+    grass.forEach((mesh, side) => {
+      const matrices = mesh.instanceMatrix.array;
+      for (let i = 0; i < mesh.count; i++) {
+        const previousZ = roots[side][i * 16 + 14], z = matrices[i * 16 + 14];
+        if (previousZ + advance > 10) {
+          recycled++; expect(z).toBeCloseTo(previousZ + advance - 90, 4);
+        } else expect(z - previousZ).toBeCloseTo(scenery.position.z - previousSceneryZ, 4);
+        expect(z).toBeGreaterThanOrEqual(-80); expect(z).toBeLessThanOrEqual(10);
+      }
+    });
+    expect(recycled).toBeGreaterThan(0);
+    const positions = grass.map(mesh => mesh.instanceMatrix.array.slice());
+    landscape.update(advance, 2);
+    grass.forEach((mesh, i) => expect(mesh.instanceMatrix.array).toEqual(positions[i]));
+    expect(resources.time.value).toBe(2);
+    disposeRoadObject(landscape.root); resources.dispose();
+  });
+
+  it("keeps scrolling grass rooted on slopes and outside curved road edges, including after long rides", () => {
+    const resources = new EnvironmentMaterials(), landscape = new ThreeLandscape(resources);
+    const grass: THREE.InstancedMesh[] = [];
+    landscape.root.traverse(object => {
+      if (object instanceof THREE.InstancedMesh && object.name === "Wind-driven roadside blades") grass.push(object);
+    });
+    for (const gradient of [-0.12, 0, 0.12]) for (const distance of [5, 90, 1200, 100_000]) {
+      const pitch = threeRoadPitch(gradient); landscape.setRoadPitch(pitch, 1.1); landscape.update(distance);
+      grass.forEach(mesh => {
+        const matrices = mesh.instanceMatrix.array;
+        for (const index of [0, 29, 500, 1500, 2999]) {
+          const point = new THREE.Vector3(matrices[index * 16 + 12], matrices[index * 16 + 13], matrices[index * 16 + 14]);
+          expect(point.y).toBeCloseTo(surface(point, distance, pitch), 4);
+          expect(Math.abs(point.x - roadBend(point.z, distance))).toBeGreaterThan(6.1);
+        }
+      });
+    }
+    disposeRoadObject(landscape.root); resources.dispose();
+  });
+
   it("samples the rendered terrain triangles on both sides of the road", () => {
     const resources = new EnvironmentMaterials(), landscape = new ThreeLandscape(resources);
     for (const gradient of [-0.12, 0, 0.12]) {
