@@ -100,7 +100,11 @@ export const disposeRoadObject = (root: THREE.Object3D): void => {
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   root.traverse((child) => {
-    if (child instanceof THREE.Mesh) geometries.add(child.geometry);
+    if (child instanceof THREE.Mesh) {
+      geometries.add(child.geometry);
+      if (child.customDepthMaterial) materials.add(child.customDepthMaterial);
+      if (child instanceof THREE.InstancedMesh) child.dispose();
+    }
     if (child instanceof THREE.Mesh || child instanceof THREE.Sprite) {
       (Array.isArray(child.material) ? child.material : [child.material]).forEach((entry) => materials.add(entry));
     }

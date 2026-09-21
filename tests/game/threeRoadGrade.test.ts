@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import * as THREE from "three";
-import { applyRoadPitch, threeRoadPitch, roadSurfaceHeight, roadSurfacePitch, ThreeLandscape } from "../../src/game/threeLandscape";
+import { applyRoadPitch, threeRoadPitch, roadSurfaceHeight, roadSurfacePitch, roadBend, roadHeading, ThreeLandscape } from "../../src/game/threeLandscape";
 
 describe("3D road grade", () => {
   it("makes a four-percent grade unmistakable while easing the steepest slopes", () => {
@@ -38,6 +38,56 @@ describe("3D road grade", () => {
       expect(Math.sign(point(-80).y)).toBe(Math.sign(gradient));
       expect(Math.abs(pitch + roadSurfacePitch(-220, pitch))).toBeLessThan(0.02);
       expect(Math.abs(point(-220).y - point(-200).y)).toBeLessThan(0.4);
+    }
+  });
+
+  it("samples the rendered grass triangles on both sides of bends and hills", () => {
+    const landscape = new ThreeLandscape();
+    for (const gradient of [-0.1, 0, 0.1]) {
+      landscape.setRoadPitch(threeRoadPitch(gradient), 1.1);
+      landscape.update(350);
+      landscape.root.traverse((object) => {
+        if (!(object instanceof THREE.Mesh) || !object.geometry.hasAttribute("grassCoord")) return;
+        const positions = object.geometry.getAttribute("position");
+        const indices = object.geometry.getIndex()!;
+        for (let i = 0; i < indices.count; i += 39) {
+          const a = new THREE.Vector3().fromBufferAttribute(positions, indices.getX(i));
+          const b = new THREE.Vector3().fromBufferAttribute(positions, indices.getX(i + 1));
+          const c = new THREE.Vector3().fromBufferAttribute(positions, indices.getX(i + 2));
+          const point = a.multiplyScalar(0.2).addScaledVector(b, 0.3).addScaledVector(c, 0.5);
+          // Bent row coordinates interpolate linearly along each triangle.
+          expect(landscape.surfaceHeight(point.x, point.z, 350)).toBeCloseTo(point.y, 4);
+        }
+      });
+    }
+  });
+
+  it("supports upright house footprints above the grass as they move and wrap", () => {
+    const landscape = new ThreeLandscape();
+    const house = new THREE.Group();
+    house.userData.groundFootprint = [1.95, 1.85];
+    house.scale.setScalar(1.11);
+    for (const grade of [-0.12, 0, 0.12]) {
+      const pitch = threeRoadPitch(grade);
+      landscape.setRoadPitch(pitch, 1.1);
+      for (const distance of [0, 350, 1200]) {
+        landscape.update(distance);
+        for (const side of [-1, 1]) {
+          for (const z of [12, -12, -90, -170]) {
+            house.position.set(side * 12 + roadBend(z, distance), 0, z);
+            house.rotation.set(-pitch, side * Math.PI / 2 + roadHeading(z, distance), 0);
+            house.position.y = landscape.supportHeight(house, distance);
+            expect(Number.isFinite(house.position.y)).toBe(true);
+            for (let x = -3; x <= 3; x += 1) {
+              for (let depth = -3; depth <= 3; depth += 1) {
+                const point = new THREE.Vector3(x / 3 * 1.95, 0, depth / 3 * 1.85).multiply(house.scale)
+                  .applyEuler(house.rotation).add(house.position);
+                expect(point.y + 0.00001).toBeGreaterThanOrEqual(landscape.surfaceHeight(point.x, point.z, distance));
+              }
+            }
+          }
+        }
+      }
     }
   });
 
