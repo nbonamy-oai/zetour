@@ -3,6 +3,10 @@ import { ThreeLandscape, roadBend, roadHeading, threeRoadPitch, applyRoadPitch, 
 import { createRoadReward, createPothole, disposeRoadObject } from "./threeProps";
 import { ThreeSlipstream } from "./threeSlipstream";
 import { createRoadVehicle, animateRoadVehicle } from "./threeVehicles";
+import {
+  createSceneryTree, createSceneryHayBale, createCropRows, createSceneryRock,
+  createGuardrail, createSceneryFlag, groundCropRows, sceneryMaterial,
+} from "./threeScenery";
 import { gameAudio } from "../audio/gameAudio";
 import {
   gameStore,
@@ -673,51 +677,9 @@ const createCyclist = (
   return group;
 };
 
-const createTree = (seed: number, cypress = false): THREE.Group => {
-  const group = new THREE.Group();
-  const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.16, 0.24, 1.9, 6),
-    meshMaterial(0x6b482f, 1),
-  );
-  trunk.position.y = 0.95;
-  const leafColors = [0x648b4f, 0x77985d, 0x4f7c4b];
-  const leafMaterial = meshMaterial(leafColors[seed % leafColors.length], 1);
-  group.add(trunk);
-  if (cypress) {
-    const body = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.42, 0.68 + (seed % 3) * 0.06, 3.15, 7),
-      leafMaterial,
-    );
-    body.position.y = 3.0;
-    const crown = new THREE.Mesh(new THREE.ConeGeometry(0.43, 1.15, 7), leafMaterial);
-    crown.position.y = 5.12;
-    body.rotation.y = seed * 0.31;
-    crown.rotation.y = seed * 0.31;
-    group.add(body, crown);
-  } else {
-    [
-      { x: -0.46, y: 2.38, z: 0.03, scale: 0.82 },
-      { x: 0.42, y: 2.45, z: 0.08, scale: 0.78 },
-      { x: 0, y: 2.92, z: -0.04, scale: 0.94 },
-    ].forEach((part, index) => {
-      const crown = new THREE.Mesh(
-        new THREE.IcosahedronGeometry((1.02 + (seed % 3) * 0.08) * part.scale, 1),
-        index === 2
-          ? meshMaterial(leafColors[(seed + 1) % leafColors.length], 1)
-          : leafMaterial,
-      );
-      crown.position.set(part.x, part.y, part.z);
-      crown.rotation.set(seed * 0.19 + index, seed * 0.47 + index * 0.7, seed * 0.11);
-      group.add(crown);
-    });
-  }
-  applyShadow(group);
-  return group;
-};
-
 const createHouse = (seed: number): THREE.Group => {
   const group = new THREE.Group();
-  const wallMaterial = meshMaterial(seed % 2 ? 0xeee3c8 : 0xf4ead0, 1);
+  const wallMaterial = sceneryMaterial(seed % 2 ? 0xeee3c8 : 0xf4ead0, "plaster");
   const trimMaterial = meshMaterial(0xf4f0e3, 0.92);
   const walls = new THREE.Mesh(
     new THREE.BoxGeometry(3.6, 2.3, 2.8),
@@ -726,7 +688,7 @@ const createHouse = (seed: number): THREE.Group => {
   walls.position.y = 1.15;
   const roof = new THREE.Mesh(
     new THREE.ConeGeometry(2.65, 1.25, 4),
-    meshMaterial(seed % 2 ? 0xb9563c : 0xc96a49, 0.94),
+    sceneryMaterial(seed % 2 ? 0xb9563c : 0xc96a49, "roof"),
   );
   roof.position.y = 2.87;
   roof.rotation.y = Math.PI / 4;
@@ -737,7 +699,7 @@ const createHouse = (seed: number): THREE.Group => {
   eaves.position.y = 2.34;
   const foundation = new THREE.Mesh(
     new THREE.BoxGeometry(3.72, 4, 2.92),
-    meshMaterial(0xd3cab3, 1),
+    sceneryMaterial(0xd3cab3, "stone"),
   );
   foundation.position.y = -1.78;
   group.userData.groundFootprint = [1.95, 1.85];
@@ -745,7 +707,7 @@ const createHouse = (seed: number): THREE.Group => {
   doorFrame.position.set(0, 0.71, 1.43);
   const door = new THREE.Mesh(
     new THREE.BoxGeometry(0.64, 1.2, 0.08),
-    meshMaterial(0x76523a, 0.9),
+    sceneryMaterial(0x76523a, "wood"),
   );
   door.position.set(0, 0.65, 1.5);
   const doorInset = new THREE.Mesh(
@@ -818,45 +780,6 @@ const createHouse = (seed: number): THREE.Group => {
     chimney,
     chimneyCap,
   );
-  applyShadow(group);
-  return group;
-};
-
-const createHayBale = (): THREE.Group => {
-  const group = new THREE.Group();
-  const bale = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.82, 0.82, 1.45, 12),
-    meshMaterial(0xd6b35b, 1),
-  );
-  bale.rotation.z = Math.PI / 2;
-  bale.position.y = 0.82;
-  const center = new THREE.Mesh(
-    new THREE.CircleGeometry(0.34, 12),
-    meshMaterial(0x9f7b37, 1),
-  );
-  center.rotation.y = Math.PI / 2;
-  center.position.set(0.731, 0.82, 0);
-  group.add(bale, center);
-  applyShadow(group);
-  return group;
-};
-
-const createFrenchFlag = (): THREE.Group => {
-  const group = new THREE.Group();
-  const pole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.035, 0.045, 2.7, 7),
-    meshMaterial(0xd8d2c1, 0.76),
-  );
-  pole.position.y = 1.35;
-  group.add(pole);
-  [0x2c5e9e, 0xf2eee1, 0xc4473d].forEach((color, index) => {
-    const panel = new THREE.Mesh(
-      new THREE.BoxGeometry(0.32, 0.78, 0.025),
-      meshMaterial(color, 0.75),
-    );
-    panel.position.set(0.18 + index * 0.32, 2.2, 0);
-    group.add(panel);
-  });
   applyShadow(group);
   return group;
 };
@@ -1079,6 +1002,7 @@ export class ThreeRide {
   private paused = false;
   private disposed = false;
   private elapsedMs = 0;
+  private readonly sceneryTime = { value: 0 };
   private targetLane = 1;
   private targetRiderX: number = THREE_LANE_X[1];
   private lastSteerAt = 0;
@@ -1200,7 +1124,11 @@ export class ThreeRide {
     gameStore.setTemporaryDraftBonus(0);
     this.scene.traverse((object) => {
       if (!(object instanceof THREE.Mesh) && !(object instanceof THREE.Sprite)) return;
-      if (object instanceof THREE.Mesh) object.geometry.dispose();
+      if (object instanceof THREE.Mesh) {
+        object.geometry.dispose();
+        object.customDepthMaterial?.dispose();
+        if (object instanceof THREE.InstancedMesh) object.dispose();
+      }
       const materials = Array.isArray(object.material) ? object.material : [object.material];
       materials.forEach((material) => material.dispose());
     });
@@ -1219,6 +1147,7 @@ export class ThreeRide {
 
   private update(delta: number): void {
     this.elapsedMs += delta * 1_000;
+    this.sceneryTime.value = this.elapsedMs / 1_000;
     const current = gameStore.getSnapshot();
     if (current.raceRevision !== this.raceRevision) {
       this.raceRevision = current.raceRevision;
@@ -1439,23 +1368,8 @@ export class ThreeRide {
     const treeCount = stage === 2 ? 72 : mountain ? 42 : 32;
     for (let i = 0; i < treeCount; i += 1) {
       const side = i % 2 ? 1 : -1;
-      const tree = createTree(i, mediterranean || mountain);
+      const tree = createSceneryTree(i, mountain ? "fir" : mediterranean ? "cypress" : "broadleaf", this.sceneryTime);
       tree.scale.setScalar(0.75 + i % 5 * 0.14);
-      if (mountain) {
-        // Layered fir crowns replace Mediterranean cypresses in the Alps.
-        disposeRoadObject(tree);
-        tree.clear();
-        const bark = meshMaterial(0x5b4435);
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, 1.8, 6), bark);
-        trunk.position.y = 0.9;
-        tree.add(trunk);
-        for (let crown = 0; crown < 3; crown += 1) {
-          const leaves = new THREE.Mesh(new THREE.ConeGeometry(1.4 - crown * 0.3, 2.2, 8), meshMaterial([0x285a49, 0x34715a, 0x478366][crown]));
-          leaves.position.y = 2 + crown * 0.8;
-          tree.add(leaves);
-        }
-        applyShadow(tree);
-      }
       place(tree, side * (7.6 + i % 6 * 1.6), 7 - i / treeCount * 180, i * 0.41);
     }
     for (let i = 0; i < (mountain ? 5 : 10); i += 1) {
@@ -1465,20 +1379,13 @@ export class ThreeRide {
     }
     if (stage === 1 || stage === 2 || mediterranean) {
       for (let i = 0; i < 18; i += 1) {
-        const field = new THREE.Group();
-        if (stage === 1) {
-          field.add(createHayBale());
-        } else {
-          const cropMaterial = meshMaterial(mediterranean ? 0x8266ad : 0x527747);
-          for (let row = 0; row < 4; row += 1) {
-            const crop = new THREE.Mesh(new THREE.BoxGeometry(0.6, mediterranean ? 0.35 : 0.7, 6), cropMaterial);
-            crop.position.set(row * 1.2, mediterranean ? 0.18 : 0.35, 0);
-            field.add(crop);
-          }
-          applyShadow(field);
-        }
+        const field = stage === 1 ? createSceneryHayBale(i) : createCropRows(i, mediterranean, this.sceneryTime);
+        if (stage === 1) field.scale.setScalar(0.82 + i % 4 * 0.09);
         place(field, (i % 2 ? 1 : -1) * (9 + i % 3 * 2), -i * 10, 0, false);
       }
+    }
+    for (let i = 0; i < (mountain ? 28 : 12); i += 1) {
+      place(createSceneryRock(i), (i % 2 ? 1 : -1) * (6.6 + i % 4 * 0.65), -4 - i * 6.3, i * 0.7, false);
     }
     for (let i = 0; i < 44; i += 1) {
       const side = i % 2 ? 1 : -1;
@@ -1489,8 +1396,7 @@ export class ThreeRide {
       reflector.position.y = 0.69;
       post.add(stem, reflector);
       if (mountain) {
-        const rail = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.22, 8.2), meshMaterial(0xadbabc, 0.55));
-        rail.position.set(0, 0.65, -4);
+        const rail = createGuardrail();
         post.add(rail);
       }
       place(post, side * 6.35, 8 - Math.floor(i / 2) * 8.2, 0, false);
@@ -1503,7 +1409,7 @@ export class ThreeRide {
     }
     for (let i = 0; i < 8; i += 1) {
       const side = i % 2 ? 1 : -1;
-      place(createFrenchFlag(), side * 7.3, -22 - Math.floor(i / 2) * 40, -side * 0.2);
+      place(createSceneryFlag(i, this.sceneryTime), side * 7.3, -22 - Math.floor(i / 2) * 40, -side * 0.2);
     }
     const gantry = createGantry(stage);
     place(gantry, 0, -140);
@@ -1536,12 +1442,18 @@ export class ThreeRide {
         0,
       );
       this.groundScenery(object);
+      const leaves = object.userData.foliage as THREE.InstancedMesh | undefined;
+      if (leaves) {
+        const fullCount = object.userData.foliageCount as number;
+        leaves.count = Math.round(fullCount * (1 - THREE.MathUtils.smoothstep(-object.position.z, 38, 135) * 0.72));
+      }
     }
   }
 
   private groundScenery(object: THREE.Object3D): void {
     object.position.y = ((object.userData.baseY as number) || 0)
       + this.landscape.supportHeight(object, this.travelled);
+    groundCropRows(object, (x, z) => this.landscape.surfaceHeight(x, z, this.travelled));
   }
 
   private alignRoadObject(object: THREE.Object3D): void {
