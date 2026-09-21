@@ -23,7 +23,7 @@ const {mkdirSync}=require('node:fs');
       // It shows the foundation instead of hiding distant houses behind a crest.
       const Vector=ride.camera.position.constructor;
       const target=ride.roadWorld.localToWorld(new Vector(-18,2,-12));target.y+=1.3;
-      ride.camera.position.copy(target).add(new Vector(-16,5,12));
+      ride.camera.position.copy(target).add(new Vector(-16,15,12));
       ride.camera.lookAt(target);ride.camera.fov=50;ride.camera.updateProjectionMatrix();
       ride.renderer.render(ride.scene,ride.camera);
     }

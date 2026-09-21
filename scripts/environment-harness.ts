@@ -2,4 +2,4 @@
 // check-environment.cjs. This is never imported by the application.
 export { ThreeRide } from "../src/game/ThreeRide";
 export { gameStore, stages } from "../src/core/gameStore";
-export { threeRoadPitch } from "../src/game/threeLandscape";
+export { threeRoadPitch, terrainHeight, roadBend, roadSurfaceHeight } from "../src/game/threeLandscape";

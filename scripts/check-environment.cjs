@@ -51,7 +51,9 @@ const assert = require('node:assert/strict');
           // software GPU's frame rate. Game frame delta remains unchanged.
           ride.landscape.update(ride.travelled,10); ride.updateRoadMotion(0,0); ride.render(10);
           const pixels=new Uint8Array(4);const gl=ride.renderer.getContext();gl.readPixels(480,300,1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
-          views.push({grade,camera,calls:ride.renderer.info.render.calls,triangles:ride.renderer.info.render.triangles,pixel:[...pixels]});
+          const local=ride.roadWorld.worldToLocal(ride.camera.position.clone());
+          const cameraTerrainClearance=module.terrainHeight ? local.y-module.terrainHeight(local.x-module.roadBend(local.z,ride.travelled),local.z)-module.roadSurfaceHeight(local.z,ride.roadPitch) : null;
+          views.push({grade,camera,cameraTerrainClearance,calls:ride.renderer.info.render.calls,triangles:ride.renderer.info.render.triangles,pixel:[...pixels]});
         }
       }
       ride.roadPitch=0;ride.applyGrade();ride.cameraModeIndex=0;
@@ -71,6 +73,7 @@ const assert = require('node:assert/strict');
       return {stage,views,medianMs:frameTimes[7],p95Ms:frameTimes[14],cpuMedianMs:cpuTimes[7],calls:r.info.render.calls,triangles:r.info.render.triangles,geometries:r.info.memory.geometries,textures:r.info.memory.textures,gpu:gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)};
     },stage);
     assert.equal(result.views.length,15);assert(result.views.every(v=>v.pixel[3]>0 && v.pixel.slice(0,3).some(channel=>channel>0)),'Blank canvas');
+    if(!baseline) assert(result.views.every(view=>view.cameraTerrainClearance>0.15),'Camera entered the terrain');
     results.push(result);console.log(JSON.stringify({...result,views:`${result.views.length} stage/grade/camera combinations`}));
     await page.screenshot({path:resolve(root,`docs/environment/${baseline ? "before" : "after"}/stage-${stage}.png`)});
   }
