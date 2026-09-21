@@ -36,11 +36,13 @@ export const roadSurfacePitch = (z: number, pitch: number, riderZ = 1.1): number
 interface Ribbon {
   geometry: THREE.BufferGeometry;
   offsets: Float32Array;
+  terrain: boolean;
 }
 
 export class ThreeLandscape {
   readonly root = new THREE.Group();
   private readonly ground = new THREE.Group();
+  private readonly grassTravel = { value: 0 };
   private pitch = 0;
   private riderZ = 1.1;
   private readonly ribbons: Ribbon[] = [];
@@ -77,9 +79,8 @@ export class ThreeLandscape {
     for (const side of [-1, 1]) {
       this.addRibbon(side * 5.35, side * 6.1, -0.035, gravelMaterial);
       this.addRibbon(side * 5.02, side * 5.12, 0.014, edgeMaterial);
-      const colors = [0x7d984b, 0x9da452, 0xc1b867, 0x758c43, 0xa6ad62];
       for (let band = 0; band < 5; band += 1) {
-        const material = new THREE.MeshStandardMaterial({ color: colors[band], roughness: 1, flatShading: true });
+        const material = this.createGrassMaterial();
         this.terrainMaterials.push(material);
         this.addRibbon(side * (6.1 + band * 18), side * (24.1 + band * 18), -0.08, material, true);
       }
@@ -118,6 +119,99 @@ export class ThreeLandscape {
     this.update(0);
   }
 
+  private createGrassMaterial(): THREE.MeshStandardMaterial {
+    const material = new THREE.MeshStandardMaterial({ color: 0x849746, roughness: 1 });
+    // Unbent ribbon coordinates keep the texture continuous across field bands
+    // and attached to the moving scenery, including on climbs and descents.
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.grassTravel = this.grassTravel;
+      shader.vertexShader = shader.vertexShader.replace("#include <common>", `
+        #include <common>
+        attribute vec2 grassCoord;
+        varying vec2 vGrassCoord;
+      `).replace("#include <begin_vertex>", `
+        #include <begin_vertex>
+        vGrassCoord = grassCoord;
+      `);
+      shader.fragmentShader = shader.fragmentShader.replace("#include <common>", `
+        #include <common>
+        uniform float grassTravel;
+        varying vec2 vGrassCoord;
+        float grassHash(vec2 p) {
+          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+        }
+        float grassNoise(vec2 p) {
+          vec2 cell = floor(p), f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(grassHash(cell), grassHash(cell + vec2(1, 0)), f.x),
+                     mix(grassHash(cell + vec2(0, 1)), grassHash(cell + vec2(1, 1)), f.x), f.y);
+        }
+      `).replace("#include <color_fragment>", `
+        #include <color_fragment>
+        vec2 p = vGrassCoord - vec2(0.0, grassTravel);
+        float patches = grassNoise(p * 0.16);
+        float tufts = grassNoise(p * 1.8);
+        float detail = 1.0 - smoothstep(0.035, 0.16, max(fwidth(p.x), fwidth(p.y)));
+        vec2 bladeCell = floor(p * vec2(13.0, 4.5));
+        vec2 blade = fract(p * vec2(13.0, 4.5));
+        float seed = grassHash(bladeCell);
+        float width = max(fwidth(blade.x), 0.025);
+        float stalk = (1.0 - smoothstep(0.08, 0.08 + width,
+          abs(blade.x - 0.5 - (blade.y - 0.5) * (seed - 0.5))))
+          * smoothstep(0.0, 0.2, blade.y) * (1.0 - smoothstep(0.6, 1.0, blade.y));
+        diffuseColor.rgb *= 0.78 + patches * 0.34 + tufts * 0.14;
+        diffuseColor.rgb += vec3(0.07, 0.055, 0.015) * (patches - 0.5);
+        diffuseColor.rgb *= 1.0 + detail * (stalk * (seed - 0.35) * 0.5
+          + (grassNoise(p * 9.0) - 0.5) * 0.16);
+      `);
+    };
+    material.customProgramCacheKey = () => "roadside-grass-v1";
+    return material;
+  }
+
+  // Sample the actual ribbon triangles, rather than the analytic hill formula:
+  // coarse terrain vertices interpolate differently between rows and columns.
+  surfaceHeight(x: number, z: number, distance: number): number {
+    const rowPosition = THREE.MathUtils.clamp((22 - z) / 2.6, 0, 100);
+    const row = Math.min(99, Math.floor(rowPosition));
+    const v = rowPosition - row;
+    const bend = THREE.MathUtils.lerp(roadBend(22 - row * 2.6, distance),
+      roadBend(22 - (row + 1) * 2.6, distance), v);
+    const baseX = x - bend;
+    const ribbon = this.ribbons.find(({ offsets, terrain }) => terrain
+      && baseX >= offsets[0] && baseX <= offsets[12]);
+    if (!ribbon) return roadSurfaceHeight(z, this.pitch, this.riderZ);
+    const { offsets } = ribbon;
+    const colPosition = THREE.MathUtils.clamp((baseX - offsets[0]) / (offsets[12] - offsets[0]) * 4, 0, 4);
+    const col = Math.min(3, Math.floor(colPosition));
+    const u = colPosition - col;
+    const height = (r: number, c: number): number => {
+      const i = (r * 5 + c) * 3;
+      return offsets[i + 1] + roadSurfaceHeight(offsets[i + 2], this.pitch, this.riderZ);
+    };
+    return u + v <= 1
+      ? height(row, col) * (1 - u - v) + height(row, col + 1) * u + height(row + 1, col) * v
+      : height(row, col + 1) * (1 - v) + height(row + 1, col) * (1 - u) + height(row + 1, col + 1) * (u + v - 1);
+  }
+
+  supportHeight(object: THREE.Object3D, distance: number): number {
+    let height = this.surfaceHeight(object.position.x, object.position.z, distance);
+    const footprint = object.userData.groundFootprint as [number, number] | undefined;
+    if (!footprint) return height;
+    // Upright buildings counter-rotate the road pitch. Account for the resulting
+    // local height of each footprint sample so uphill walls stay above grass.
+    const offset = new THREE.Vector3();
+    for (const x of [-footprint[0], 0, footprint[0]]) {
+      for (const z of [-footprint[1], 0, footprint[1]]) {
+        offset.set(x, 0, z).multiply(object.scale).applyEuler(object.rotation);
+        height = Math.max(height, this.surfaceHeight(object.position.x + offset.x,
+          object.position.z + offset.z, distance) - offset.y);
+      }
+    }
+    // Keep walls clear of small triangle peaks between footprint samples.
+    return height + 0.05;
+  }
+
   private addRibbon(left: number, right: number, y: number, material: THREE.Material, terrain = false): THREE.Mesh {
     const segments = 100;
     const columns = terrain ? 4 : 1;
@@ -141,17 +235,22 @@ export class ThreeLandscape {
     }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+    if (terrain) {
+      const coordinates = vertices.flatMap((_, i) => i % 3 === 0 ? [vertices[i], vertices[i + 2]] : []);
+      geometry.setAttribute("grassCoord", new THREE.Float32BufferAttribute(coordinates, 2));
+    }
     geometry.setIndex(indices);
     geometry.computeVertexNormals();
     const mesh = new THREE.Mesh(geometry, material);
     mesh.receiveShadow = true;
     mesh.frustumCulled = false;
     this.ground.add(mesh);
-    this.ribbons.push({ geometry, offsets: new Float32Array(vertices) });
+    this.ribbons.push({ geometry, offsets: new Float32Array(vertices), terrain });
     return mesh;
   }
 
   update(distance: number): void {
+    this.grassTravel.value = distance;
     for (const { geometry, offsets } of this.ribbons) {
       const positions = geometry.attributes.position;
       for (let i = 0; i < positions.count; i += 1) {
@@ -182,8 +281,8 @@ export class ThreeLandscape {
     this.skyMaterial.uniforms.top.value.setHex(palette[0]);
     this.skyMaterial.uniforms.horizon.value.setHex(palette[1]);
     this.roadMaterial.color.setHex(gravel ? 0x948168 : 0x343e43);
-    this.terrainMaterials.forEach((material, index) => {
-      material.color.setHex(palette[2]).offsetHSL((index % 3) * 0.014, 0, (index % 5) * 0.037);
+    this.terrainMaterials.forEach((material) => {
+      material.color.setHex(palette[2]);
     });
     this.mountains.scale.y = [0.3, 0.7, 1.3, 0.55, 1.8][stage - 1] ?? 0.3;
     this.mountains.children.forEach((ridge, layer) => {

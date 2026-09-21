@@ -736,10 +736,11 @@ const createHouse = (seed: number): THREE.Group => {
   );
   eaves.position.y = 2.34;
   const foundation = new THREE.Mesh(
-    new THREE.BoxGeometry(3.72, 0.22, 2.92),
+    new THREE.BoxGeometry(3.72, 4, 2.92),
     meshMaterial(0xd3cab3, 1),
   );
-  foundation.position.y = 0.11;
+  foundation.position.y = -1.78;
+  group.userData.groundFootprint = [1.95, 1.85];
   const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(0.82, 1.34, 0.12), trimMaterial);
   doorFrame.position.set(0, 0.71, 1.43);
   const door = new THREE.Mesh(
@@ -1429,6 +1430,7 @@ export class ThreeRide {
       object.userData.baseYaw = yaw;
       object.userData.upright = upright;
       object.rotation.set(upright ? -this.roadPitch : roadSurfacePitch(z, this.roadPitch), yaw + roadHeading(z, this.travelled), 0);
+      this.groundScenery(object);
       this.movingScenery.push(object);
       this.roadWorld.add(object);
     };
@@ -1528,13 +1530,18 @@ export class ThreeRide {
       object.position.z += speed * delta;
       if (object.position.z > WORLD_END_Z) object.position.z -= WORLD_WRAP_LENGTH;
       object.position.x = (object.userData.baseX as number) + roadBend(object.position.z, this.travelled);
-      object.position.y = ((object.userData.baseY as number) || 0) + roadSurfaceHeight(object.position.z, this.roadPitch);
       object.rotation.set(
         object.userData.upright ? -this.roadPitch : roadSurfacePitch(object.position.z, this.roadPitch),
         ((object.userData.baseYaw as number) || 0) + roadHeading(object.position.z, this.travelled),
         0,
       );
+      this.groundScenery(object);
     }
+  }
+
+  private groundScenery(object: THREE.Object3D): void {
+    object.position.y = ((object.userData.baseY as number) || 0)
+      + this.landscape.supportHeight(object, this.travelled);
   }
 
   private alignRoadObject(object: THREE.Object3D): void {
