@@ -1,0 +1,1074 @@
+{
+  "viewport": [
+    960,
+    600
+  ],
+  "dpr": 1,
+  "speedKmh": 25,
+  "camera": "Chase",
+  "warmupFrames": 8,
+  "sampleFrames": 15,
+  "results": [
+    {
+      "stage": 1,
+      "views": [
+        {
+          "grade": -0.12,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 1871,
+          "triangles": 85376,
+          "pixel": [
+            203,
+            191,
+            150,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1619,
+          "triangles": 62674,
+          "pixel": [
+            151,
+            158,
+            87,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 1871,
+          "triangles": 84968,
+          "pixel": [
+            54,
+            58,
+            49,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 1005,
+          "triangles": 62620,
+          "pixel": [
+            147,
+            167,
+            69,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 1223,
+          "triangles": 68836,
+          "pixel": [
+            49,
+            53,
+            45,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 1834,
+          "triangles": 85248,
+          "pixel": [
+            57,
+            60,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1579,
+          "triangles": 62070,
+          "pixel": [
+            60,
+            63,
+            53,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 1840,
+          "triangles": 85376,
+          "pixel": [
+            56,
+            59,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 817,
+          "triangles": 58544,
+          "pixel": [
+            56,
+            59,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 905,
+          "triangles": 60872,
+          "pixel": [
+            51,
+            56,
+            49,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 1875,
+          "triangles": 85888,
+          "pixel": [
+            51,
+            54,
+            46,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1619,
+          "triangles": 62674,
+          "pixel": [
+            54,
+            56,
+            47,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 1881,
+          "triangles": 86080,
+          "pixel": [
+            50,
+            53,
+            45,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 684,
+          "triangles": 54840,
+          "pixel": [
+            46,
+            50,
+            43,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 599,
+          "triangles": 39794,
+          "pixel": [
+            42,
+            47,
+            41,
+            255
+          ]
+        }
+      ],
+      "medianMs": 254.1999999997206,
+      "p95Ms": 324.3000000002794,
+      "cpuMedianMs": 1.8000000002793968,
+      "calls": 1862,
+      "triangles": 85564,
+      "geometries": 1402,
+      "textures": 4,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    {
+      "stage": 2,
+      "views": [
+        {
+          "grade": -0.12,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 2114,
+          "triangles": 91592,
+          "pixel": [
+            203,
+            191,
+            149,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1862,
+          "triangles": 68950,
+          "pixel": [
+            43,
+            69,
+            39,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 2108,
+          "triangles": 90992,
+          "pixel": [
+            172,
+            145,
+            101,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 1139,
+          "triangles": 66004,
+          "pixel": [
+            113,
+            149,
+            66,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 1374,
+          "triangles": 72748,
+          "pixel": [
+            164,
+            137,
+            94,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 2072,
+          "triangles": 91260,
+          "pixel": [
+            175,
+            147,
+            103,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1815,
+          "triangles": 68118,
+          "pixel": [
+            176,
+            148,
+            104,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 2071,
+          "triangles": 91160,
+          "pixel": [
+            174,
+            147,
+            103,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 928,
+          "triangles": 61232,
+          "pixel": [
+            175,
+            147,
+            103,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 1008,
+          "triangles": 63392,
+          "pixel": [
+            173,
+            146,
+            101,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 2119,
+          "triangles": 92092,
+          "pixel": [
+            161,
+            134,
+            92,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1862,
+          "triangles": 68950,
+          "pixel": [
+            161,
+            135,
+            93,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 2129,
+          "triangles": 92440,
+          "pixel": [
+            160,
+            134,
+            92,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 768,
+          "triangles": 56928,
+          "pixel": [
+            159,
+            132,
+            91,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 676,
+          "triangles": 41690,
+          "pixel": [
+            158,
+            131,
+            89,
+            255
+          ]
+        }
+      ],
+      "medianMs": 317.70000000018626,
+      "p95Ms": 350,
+      "cpuMedianMs": 1.6000000000931323,
+      "calls": 2102,
+      "triangles": 91744,
+      "geometries": 1598,
+      "textures": 4,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    {
+      "stage": 3,
+      "views": [
+        {
+          "grade": -0.12,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 1667,
+          "triangles": 79764,
+          "pixel": [
+            188,
+            185,
+            135,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1411,
+          "triangles": 57046,
+          "pixel": [
+            155,
+            176,
+            101,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 1664,
+          "triangles": 79228,
+          "pixel": [
+            54,
+            58,
+            49,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 891,
+          "triangles": 59516,
+          "pixel": [
+            133,
+            167,
+            76,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 1112,
+          "triangles": 65548,
+          "pixel": [
+            49,
+            53,
+            45,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 1652,
+          "triangles": 79984,
+          "pixel": [
+            57,
+            60,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1394,
+          "triangles": 56806,
+          "pixel": [
+            60,
+            63,
+            53,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 1659,
+          "triangles": 80028,
+          "pixel": [
+            56,
+            59,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 767,
+          "triangles": 56708,
+          "pixel": [
+            56,
+            59,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 845,
+          "triangles": 58824,
+          "pixel": [
+            51,
+            56,
+            49,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 1671,
+          "triangles": 80256,
+          "pixel": [
+            51,
+            54,
+            46,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1415,
+          "triangles": 57110,
+          "pixel": [
+            54,
+            56,
+            47,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 1678,
+          "triangles": 80384,
+          "pixel": [
+            50,
+            53,
+            45,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 628,
+          "triangles": 53160,
+          "pixel": [
+            46,
+            50,
+            43,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 545,
+          "triangles": 38138,
+          "pixel": [
+            42,
+            47,
+            41,
+            255
+          ]
+        }
+      ],
+      "medianMs": 309.5,
+      "p95Ms": 340.40000000037253,
+      "cpuMedianMs": 1.7000000001862645,
+      "calls": 1652,
+      "triangles": 79956,
+      "geometries": 1305,
+      "textures": 4,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    {
+      "stage": 4,
+      "views": [
+        {
+          "grade": -0.12,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 1879,
+          "triangles": 82542,
+          "pixel": [
+            191,
+            178,
+            107,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1624,
+          "triangles": 59834,
+          "pixel": [
+            198,
+            185,
+            120,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 1876,
+          "triangles": 82008,
+          "pixel": [
+            54,
+            58,
+            49,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 1013,
+          "triangles": 61128,
+          "pixel": [
+            197,
+            188,
+            106,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 1227,
+          "triangles": 67064,
+          "pixel": [
+            49,
+            53,
+            45,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 1843,
+          "triangles": 82480,
+          "pixel": [
+            57,
+            60,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1586,
+          "triangles": 59310,
+          "pixel": [
+            60,
+            63,
+            53,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 1848,
+          "triangles": 82484,
+          "pixel": [
+            56,
+            59,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 833,
+          "triangles": 57530,
+          "pixel": [
+            56,
+            59,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 911,
+          "triangles": 59686,
+          "pixel": [
+            51,
+            56,
+            49,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 1882,
+          "triangles": 83018,
+          "pixel": [
+            51,
+            54,
+            46,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1625,
+          "triangles": 59862,
+          "pixel": [
+            54,
+            56,
+            47,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 1885,
+          "triangles": 83084,
+          "pixel": [
+            50,
+            53,
+            45,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 690,
+          "triangles": 53990,
+          "pixel": [
+            46,
+            50,
+            43,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 602,
+          "triangles": 38872,
+          "pixel": [
+            42,
+            47,
+            41,
+            255
+          ]
+        }
+      ],
+      "medianMs": 271.60000000009313,
+      "p95Ms": 293.39999999990687,
+      "cpuMedianMs": 1.5,
+      "calls": 1872,
+      "triangles": 82856,
+      "geometries": 1406,
+      "textures": 4,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    {
+      "stage": 5,
+      "views": [
+        {
+          "grade": -0.12,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 2183,
+          "triangles": 98724,
+          "pixel": [
+            139,
+            153,
+            120,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1927,
+          "triangles": 76006,
+          "pixel": [
+            151,
+            164,
+            133,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 2053,
+          "triangles": 93472,
+          "pixel": [
+            54,
+            58,
+            49,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 897,
+          "triangles": 59588,
+          "pixel": [
+            143,
+            155,
+            120,
+            255
+          ]
+        },
+        {
+          "grade": -0.12,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 1110,
+          "triangles": 65524,
+          "pixel": [
+            49,
+            53,
+            45,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 2170,
+          "triangles": 98968,
+          "pixel": [
+            57,
+            60,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1910,
+          "triangles": 75766,
+          "pixel": [
+            60,
+            63,
+            53,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 2177,
+          "triangles": 99012,
+          "pixel": [
+            56,
+            59,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 772,
+          "triangles": 56804,
+          "pixel": [
+            56,
+            59,
+            51,
+            255
+          ]
+        },
+        {
+          "grade": 0,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 845,
+          "triangles": 58824,
+          "pixel": [
+            51,
+            56,
+            49,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 0,
+          "cameraTerrainClearance": null,
+          "calls": 2189,
+          "triangles": 99240,
+          "pixel": [
+            51,
+            54,
+            46,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 1,
+          "cameraTerrainClearance": null,
+          "calls": 1931,
+          "triangles": 76070,
+          "pixel": [
+            54,
+            56,
+            47,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 2,
+          "cameraTerrainClearance": null,
+          "calls": 2196,
+          "triangles": 99368,
+          "pixel": [
+            50,
+            53,
+            45,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 3,
+          "cameraTerrainClearance": null,
+          "calls": 629,
+          "triangles": 53172,
+          "pixel": [
+            46,
+            50,
+            43,
+            255
+          ]
+        },
+        {
+          "grade": 0.12,
+          "camera": 4,
+          "cameraTerrainClearance": null,
+          "calls": 547,
+          "triangles": 38162,
+          "pixel": [
+            42,
+            47,
+            41,
+            255
+          ]
+        }
+      ],
+      "medianMs": 346.5,
+      "p95Ms": 370,
+      "cpuMedianMs": 1.6000000000931323,
+      "calls": 2168,
+      "triangles": 98916,
+      "geometries": 1805,
+      "textures": 4,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    }
+  ],
+  "lifecycle": {
+    "counts": [
+      {
+        "geometries": 1801,
+        "textures": 4
+      },
+      {
+        "geometries": 1801,
+        "textures": 4
+      },
+      {
+        "geometries": 1801,
+        "textures": 4
+      }
+    ],
+    "textureCount": 1,
+    "textureDisposals": 1,
+    "canvases": 0
+  },
+  "errors": [],
+  "worldUnitsPerSecond": 13.5
+}

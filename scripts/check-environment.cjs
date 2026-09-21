@@ -61,7 +61,7 @@ const assert = require('node:assert/strict');
       const frameTimes=[],cpuTimes=[];
       for(let i=0;i<23;i++) {
         const start=performance.now();
-        // Exercise the terrain/prop updates at 48.6km/h, then draw and allow
+        // Exercise the terrain/prop updates at 25km/h displayed pace (13.5 world units/s), then draw and allow
         // presentation. Include CPU updates as well as the software GPU.
         ride.travelled+=13.5/60;
         const cpuStart=performance.now();ride.landscape.update(ride.travelled,i/60);ride.updateRoadMotion(13.5,1/60);const cpu=performance.now()-cpuStart;
@@ -95,7 +95,7 @@ const assert = require('node:assert/strict');
   assert.equal(lifecycle.canvases,0);if(!baseline) assert.equal(lifecycle.textureCount,lifecycle.textureDisposals,'Undisposed textures');
   assert.deepEqual(errors,[]);
   await mkdir(resolve(root,'docs/environment'),{recursive:true});
-  await writeFile(resolve(root,`docs/environment/${baseline ? 'baseline' : 'production'}-browser-results.json`),JSON.stringify({viewport:[960,600],dpr:1,speedKmh:48.6,camera:'Chase',warmupFrames:8,sampleFrames:15,results,lifecycle,errors},null,2)+'\n');
+  await writeFile(resolve(root,`docs/environment/${baseline ? 'baseline' : 'production'}-browser-results.json`),JSON.stringify({viewport:[960,600],dpr:1,speedKmh:25,worldUnitsPerSecond:13.5,camera:'Chase',warmupFrames:8,sampleFrames:15,results,lifecycle,errors},null,2)+'\n');
   await browser.close();await new Promise(resolve=>server.close(resolve));
   console.log('PASS: 75 views, repeated stage transitions, teardown, no browser/shader errors.');
 })().catch(error=>{console.error(error);process.exit(1)});

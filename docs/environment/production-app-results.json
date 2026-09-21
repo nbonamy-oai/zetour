@@ -1,0 +1,72 @@
+[
+  {
+    "stage": 1,
+    "sector": "Season 1 · Tour 1 · Sector 1 / 5",
+    "cameras": [
+      "Chase camera\nC",
+      "First person camera\nC",
+      "Wide camera\nC",
+      "Roadside camera\nC",
+      "Helicopter camera\nC"
+    ],
+    "slope": "25 km/h\nTOUR PACE\nSlope 0.0% · Wind calm",
+    "errors": [],
+    "failures": []
+  },
+  {
+    "stage": 2,
+    "sector": "Season 1 · Tour 1 · Sector 2 / 5",
+    "cameras": [
+      "Chase camera\nC",
+      "First person camera\nC",
+      "Wide camera\nC",
+      "Roadside camera\nC",
+      "Helicopter camera\nC"
+    ],
+    "slope": "10 km/h\nTOUR PACE\nSlope ↗ 4.7% · Wind calm",
+    "errors": [],
+    "failures": []
+  },
+  {
+    "stage": 3,
+    "sector": "Season 1 · Tour 1 · Sector 3 / 5",
+    "cameras": [
+      "Chase camera\nC",
+      "First person camera\nC",
+      "Wide camera\nC",
+      "Roadside camera\nC",
+      "Helicopter camera\nC"
+    ],
+    "slope": "45 km/h\nTOUR PACE\nSlope ↘ 5.0% · Wind calm",
+    "errors": [],
+    "failures": []
+  },
+  {
+    "stage": 4,
+    "sector": "Season 1 · Tour 1 · Sector 4 / 5",
+    "cameras": [
+      "Chase camera\nC",
+      "First person camera\nC",
+      "Wide camera\nC",
+      "Roadside camera\nC",
+      "Helicopter camera\nC"
+    ],
+    "slope": "21 km/h\nTOUR PACE\nSlope ↘ 0.9% · Wind 28% headwind",
+    "errors": [],
+    "failures": []
+  },
+  {
+    "stage": 5,
+    "sector": "Season 1 · Tour 1 · Sector 5 / 5",
+    "cameras": [
+      "Chase camera\nC",
+      "First person camera\nC",
+      "Wide camera\nC",
+      "Roadside camera\nC",
+      "Helicopter camera\nC"
+    ],
+    "slope": "4.9 km/h\nTOUR PACE\nSlope ↗ 12.0% · Wind calm",
+    "errors": [],
+    "failures": []
+  }
+]
