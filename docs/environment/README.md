@@ -211,7 +211,7 @@ Validation of the surface correction:
 These follow-up checks supplement the original whole-scene performance,
 application-stage and resource-disposal checks above.
 
-## First-person arms and handlebar follow-up
+## First-person arms and handlebar follow-up (initial pass)
 
 The close-up cockpit now uses smooth forearm contours with elliptical muscle
 and wrist sections, slimmer fingerless gloves with curved seams and knuckle
@@ -241,7 +241,7 @@ Validation:
 - `cockpit-before.png` / `cockpit-after.png` are comparable full-game production
   captures at stage 1, First person, zero grade/travel, fixed wind time 2 seconds,
   displayed speed 25 km/h, 1440×810 and DPR 1. The before bundle uses the actual
-  implementation at `8058c6b`; the after bundle uses the final cockpit. The
+  implementation at `8058c6b`; the after bundle uses the cockpit at `3047815`. The
   camera, scenery and game state are identical, and neither screenshot is
   altered after capture. Raw checks are in `cockpit-browser-results.json`.
 
@@ -249,3 +249,46 @@ The body and hands remain procedurally modeled within the game's illustrated
 style. They are a rigid grip pose with the existing camera/steering movement,
 rather than a skeletal character animation or an independently articulated
 braking simulation.
+
+
+## First-person anatomy and surface revision
+
+The initial cockpit pass improved bike fittings but left conspicuous separate
+wrist spheres and bulky glove palms. This revision removes the wrist spheres
+and cuff blobs. Continuous shaped glove sections overlap the forearm end,
+forming a fitted wrist, palm heel, flatter hand back and knuckle region. The
+fingerless glove ends in separated fingers curled around slimmer brake hoods.
+Muscle/wrist taper, less orange skin tones, restrained skin mottling/pores,
+fabric weave, panel/cuff stitching and small fingernails support the close view.
+The stem, crossbar and drops have slimmer proportions.
+
+Validation:
+
+- Production build and **14/14** environment/road-grade tests pass; the existing
+  bundle-size warning remains.
+- **45/45** first-person checks across five stages, ±12%/flat grades, and the
+  same desktop, wide and portrait viewports pass. Both grips stay in view;
+  the cockpit hides in the other four cameras; no browser errors.
+- All **22** cockpit resources (9 geometries, 9 materials, 4 textures) dispose
+  exactly once after repeated ride teardown. The new skin and fabric textures
+  join the owned texture list rather than leaking across rides.
+- Isolated rendering: **8 → 9 draw calls**, **17,282 → 20,778 triangles**,
+  compared with the initial cockpit pass. The extra material is for fingernails;
+  the extra triangles shape the fitted hand and finger contours. Skin/fabric
+  add two 256×256 RGBA textures (about 0.67 MiB together including mipmaps).
+  These cost counts do not establish hardware FPS or photorealism.
+- `cockpit-realism-before.png` / `cockpit-realism-after.png` show the full
+  running game with the same first-person camera/state as the initial pair.
+  The `-detail.png` pair is captured directly from the same canvas using an
+  identical 960×280 browser screenshot rectangle, making the hand/wrist shape
+  comparison easier to inspect. No images are altered after capture.
+  The before bundle uses `3047815`; the after bundle uses this revision.
+  Raw checks are in `cockpit-realism-browser-results.json`. Reproduce with:
+
+```sh
+COCKPIT_BASELINE=304781553180e190b1c165d1a7573a9283ce2a27 COCKPIT_PREFIX=cockpit-realism node scripts/check-cockpit.cjs
+```
+
+This remains a procedural game model with a fixed grip and conventional
+surface lighting. Skin detail is restrained; it does not reproduce scanned
+anatomy, skin subsurface scattering, or articulated tendons during braking.

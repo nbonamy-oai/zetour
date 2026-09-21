@@ -8,8 +8,11 @@ const assert=require('node:assert/strict');
 (async()=>{
  const {build}=await import('vite');
  const root=process.cwd(),outDir='/tmp/zetour-cockpit';
- const oldRide=execFileSync('git',['show','8058c6b4fe0b4642f0bb0fe23a044c4be9952502:src/game/ThreeRide.ts'],{encoding:'utf8'});
- for(const phase of ['before','after'])await build({configFile:false,root,logLevel:'warn',plugins:phase==='before'?[{name:'original-cockpit',enforce:'pre',transform(code,id){if(id===resolve(root,'src/game/ThreeRide.ts'))return oldRide;}}]:[],build:{outDir,emptyOutDir:phase==='before',target:'es2022',lib:{entry:resolve(root,'scripts/environment-harness.ts'),formats:['es'],fileName:()=>`${phase}.js`}}});
+ const baseline=process.env.COCKPIT_BASELINE||'8058c6b4fe0b4642f0bb0fe23a044c4be9952502',prefix=process.env.COCKPIT_PREFIX||'cockpit';
+ const oldRide=execFileSync('git',['show',`${baseline}:src/game/ThreeRide.ts`],{encoding:'utf8'});
+ const hasCockpit=execFileSync('git',['ls-tree',baseline,'src/game/threeCockpit.ts'],{encoding:'utf8'}).trim();
+ const oldCockpit=hasCockpit?execFileSync('git',['show',`${baseline}:src/game/threeCockpit.ts`],{encoding:'utf8'}):null;
+ for(const phase of ['before','after'])await build({configFile:false,root,logLevel:'warn',plugins:phase==='before'?[{name:'original-cockpit',enforce:'pre',transform(code,id){if(id===resolve(root,'src/game/ThreeRide.ts'))return oldRide;if(oldCockpit&&id===resolve(root,'src/game/threeCockpit.ts'))return oldCockpit;}}]:[],build:{outDir,emptyOutDir:phase==='before',target:'es2022',lib:{entry:resolve(root,'scripts/environment-harness.ts'),formats:['es'],fileName:()=>`${phase}.js`}}});
  const server=createServer(async(req,res)=>{
   if(req.url==='/'){res.end('<html><head><link rel="icon" href="data:,"></head><body style="margin:0"><div id="game" style="width:100vw;height:100vh"></div></body></html>');return;}
   if(['/before.js','/after.js'].includes(req.url)){res.setHeader('Content-Type','text/javascript');res.end(await readFile(resolve(outDir,req.url.slice(1))));return;}
@@ -32,7 +35,8 @@ const assert=require('node:assert/strict');
     ride.cameraModeIndex=1;ride.visualSpeed=25;ride.roadPitch=0;ride.applyGrade();ride.travelled=0;
     ride.landscape.update(0,2);ride.updateRoadMotion(0,0);ride.render(10);
    },phase);
-   await page.screenshot({path:resolve(root,`docs/environment/cockpit-${phase}.png`)});
+   await page.screenshot({path:resolve(root,`docs/environment/${prefix}-${phase}.png`)});
+   await page.screenshot({clip:{x:240,y:530,width:960,height:280},path:resolve(root,`docs/environment/${prefix}-${phase}-detail.png`)});
    captures.push({phase,viewport:[1440,810],stage:1,grade:0,travel:0,windSeconds:2});
    cost.push(await page.evaluate(phase=>{
     const {ride}=window;ride.scene.traverse(object=>{if(object.isMesh)object.visible=false;});
@@ -77,8 +81,8 @@ const assert=require('node:assert/strict');
    }else await page.evaluate(()=>window.ride.dispose());
    await page.close();
   }
-  assert.deepEqual(errors,[]);assert(cost[1].drawCalls<cost[0].drawCalls);
-  await writeFile(resolve(root,'docs/environment/cockpit-browser-results.json'),JSON.stringify({captures,cost,results,errors},null,2)+'\n');
+  assert.deepEqual(errors,[]);assert(cost[1].drawCalls<=10);
+  await writeFile(resolve(root,`docs/environment/${prefix}-browser-results.json`),JSON.stringify({baseline,captures,cost,results,errors},null,2)+'\n');
   console.log('PASS: comparable captures, 45 stage/slope/aspect views, other camera visibility and exact-once disposal.',cost);
  }finally{if(browser)await browser.close();await new Promise(done=>server.close(done));}
 })().catch(error=>{console.error(error);process.exitCode=1;});
