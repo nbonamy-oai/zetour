@@ -1,44 +1,33 @@
 # 3D environment validation
 
-The environment keeps Ze Tour's warm, illustrated rural style while replacing
-flat surfaces and primitive scenery with finer physical detail. The screenshots
-in `before/` and `after/` are captured from the running game, with matching stage,
-grade, zero visual speed, viewport (1440 × 1000, DPR 1), and camera mode. Cameras
-are settled through the game's own render function and a fixed animation clock;
-only development component state is accessed by the capture script. House
-images use the same fixed inspection camera outside the left verge, looking
-inward at road-local (-18, 2, -12), with world offset (-16, 15, 12), FOV 50°.
-This exposes their foundations rather than hiding houses behind a road crest.
+Ze Tour keeps its warm rural art direction while adding textured surfaces,
+grounded scenery, moving grass and a first-person cockpit with bent elbows.
+This directory contains direct browser captures and raw validation results.
 
-## Changes
+## Screenshot conditions
 
-- Asphalt aggregate, gravel shoulders, organic grass texture and broad terrain
-  color variation; brighter lane markings follow the same bend/crest as asphalt.
-- 6,000 nearby instanced grass clumps (three tapered blades each), natural color
-  variation and wind; distant grass uses the textured terrain rather than blades.
-- Animated procedural clouds with soft lit edges, warm sunlight and a horizon
-  gradient; three rugged mountain layers with rock, vegetation, alpine snow and
-  progressively stronger distance haze.
-- Oak, birch, fir, cypress and olive trees have bark, branching trunks, roots,
-  individual leaf cards and crossed needle sprigs, wind and matching wind-driven shadows.
-  Foliage density falls with distance.
-- Rounded straw rolls have straw fibers, spiral wound ends and two twine bands.
-  Crop/lavender rows have separate green stems and colored heads, soil strips,
-  varied plant scale, and individually sampled terrain roots.
-- Plaster walls, tiled roofs, wooden doors and masonry foundations; house
-  orientation cancels the parent road pitch using quaternions. Foundation skirts
-  reach the terrain along their entire perimeter instead of sinking/floating.
-- Weathered rocks, cloth flags, roadside reflectors and corrugated guardrails.
-  Guardrails sample both bends and slope changes along each segment; gantry
-  supports independently extend to the shoulders.
+The PR's environment comparisons use `before/` and `final/`: matching stage,
+grade, zero travel/speed, fixed animation time (2 seconds), camera mode,
+1440 × 1000 viewport and DPR 1. The captured game area is 1400 × 836.
+`final/` was captured from the running game with the finished cockpit.
+House images use the same inspection camera looking at road-local (-18, 2, -12),
+with target Y offset 1.3, camera offset (-16, 15, 12), and FOV 50°.
+This exposes the foundations on both +12% and -12% grades.
 
-All scenery uses the same road-relative, triangle-interpolated terrain lattice.
-Houses, trees and fields have conservative roadside setbacks and reserve their
-footprints to avoid crops, bales or trunks clipping through buildings. Terrain and prop
-coordinates share the road's bend and grade transforms. Shared textures,
-materials and foliage/blade geometries are owned by one ride, retained during
-stage changes, and disposed at teardown. Stage disposal also releases instanced
-mesh buffers. Static house and spectator details are merged by material.
+`cockpit-before.png` and `cockpit-bent-after.png` show the original and finished
+cockpits at stage 1, First person, zero grade/travel, fixed animation time
+2 seconds, displayed speed 25 km/h, 1440 × 810 and DPR 1. The
+`cockpit-bent-*-detail.png` pair isolates the straight-versus-bent arm posture
+using the same direct browser screenshot rectangle (960 × 280).
+The five `before/stage-*.png` and `after/stage-*.png` pairs cover the stage
+palettes in Chase view, where the cockpit is hidden.
+
+`terrain-scroll-start.png` and `terrain-scroll-forward.png` show the same
+Roadside camera and animation time, separated by half a second of world
+travel at displayed 25 km/h (6.75 world units). Grass blades, painted grass,
+asphalt and shoulders advance with roadside objects. All screenshots are
+captured from the running game; there are no post-capture image edits.
+Other captures are retained as an evidence archive, not used as final PR views.
 
 ## Reproduce
 
@@ -46,70 +35,71 @@ mesh buffers. Static house and spectator details are merged by material.
 npm ci
 npm run build
 npm test -- --maxWorkers=2
-# Install browser tooling locally if it is not already available.
+# Browser tooling, if not already available:
 npm install --no-save playwright
 CHROMIUM_PATH=/usr/bin/chromium node scripts/check-environment.cjs
-# With Vite serving the improved game at :5173 and the baseline at :5174:
-node scripts/capture-environment.cjs before
-node scripts/capture-environment.cjs after
-# With npm run preview serving the production build at :5175:
+node scripts/check-grass-scroll.cjs
+node scripts/check-terrain-scroll.cjs
+COCKPIT_BASELINE=8e58d13920ae31507dceebe8f6b5ba1d45f025ff COCKPIT_PREFIX=cockpit-bent COCKPIT_BENT=1 node scripts/check-cockpit.cjs
+# With the production preview served on :5175:
 node scripts/check-environment-app.cjs
+# With the finished game served by Vite on :5173:
+ENVIRONMENT_PORT=5173 node scripts/capture-environment.cjs final
 ```
 
-`check-environment.cjs` compiles the real ThreeRide class with Vite's production
-settings into a temporary, unshipped browser harness. It checks all five stages,
-all five cameras, and grades -12%, 0%, +12% (75 combinations), including pixel
-readback, shader/browser errors, repeated stage changes and resource disposal.
-It also measures 15 warmed frames (after eight warm-up frames) at 960 × 600, DPR 1 while updating terrain and
-scenery at 25 km/h displayed pace (13.5 world units/s). Frame time includes presentation; CPU time separately covers
-terrain and scenery updates. The camera is settled in Chase view before timing. The raw output is
-`production-browser-results.json`.
-The test harness is never imported by the application and adds no debug controls
-to production UI. `check-environment-app.cjs` additionally navigates the actual
-production build and cycles all five camera controls in five separately seeded
-stages (25 cases), including the real -5% descent and +12% alpine climb; it
-checks the displayed stage/grade, JavaScript errors and failed asset responses.
-Screenshots were visually inspected, including house-foot contact and the
-road/guardrail bend in the extreme slope views.
+The browser harness compiles the real ThreeRide class with production Vite
+settings into a temporary, unshipped entry. It never adds production debug UI.
+The application check separately navigates the actual production app and its
+camera controls. Screenshot capture uses the development component instance
+only to set deterministic game state and comparable cameras.
 
-For a fair baseline, preserve the original checkout at `/tmp/zetour-baseline`,
-symlink its `node_modules`, and copy the original five-line
-`scripts/environment-harness.ts` from commit `cbc67a9` into its scripts
-directory (the baseline has no terrain sampler export). Then run the same
-script with `ENVIRONMENT_BASELINE=1`. This produces
-`baseline-browser-results.json` using identical rendering/measurement steps.
+## Validation results
 
-## Test results
+- Production TypeScript/Vite build passes. Vite's existing large-chunk warning
+  remains (approximately 2.24 MB main bundle, 614 kB gzip).
+- **14/14** targeted environment/road-grade tests pass, covering triangle
+  sampling, grounding, clearances, footprint reservations, ownership, grass
+  recycling, surface movement, stops/resets and long-ride precision.
+- Full suite: **214 passed, 3 failed**. The three failures are progression
+  simulation timeouts, also reproduced on untouched commit
+  `a84a5ce741ddb983124085a8ee48cdf84cbfc86b` with one worker and no concurrent
+  browser/build: 9.69, 40.71 and 18.39 seconds against 5, 30 and 15 second
+  limits. Vitest also reported an `onTaskUpdate` RPC timeout. Core simulation
+  code and existing progression tests are unchanged.
+- `production-browser-results.json`: **75/75** renders, five stages × five
+  cameras × -12%, 0%, +12% grades; nonblank pixels, camera clearance, no
+  browser/shader errors, and stable resource counts over three stage cycles.
+  All 14 tracked texture assets dispose exactly once; repeated teardown removes
+  the canvas. This environment-renderer snapshot is from `1b5c520`.
+- `production-app-results.json`: **25/25** actual production-app stage/camera
+  cases, including real -5% descent and +12% climb; correct labels and no
+  JavaScript errors or failed asset responses (environment snapshot `1b5c520`).
+- `grass-scroll-browser-results.json`: **75/75** views with camera and wind
+  time frozen and only blades drawn. All 6,000 roots advance at prop speed,
+  remain grounded within 0.0001 world units, and every view changes pixels.
+- `terrain-scroll-browser-results.json`: **75/75** views with only painted
+  grass drawn and camera, wind, positions and normals frozen. Every view changes
+  at least 8,517 pixels; every terrain/asphalt/shoulder UV phase matches travel.
+  Stops, resets and unchanged shared texture offsets are also checked.
+- `cockpit-bent-browser-results.json`: **45/45** finished-cockpit cases across
+  five stages, -12%/flat/+12% grades, and 1440×810, 1920×810 and 810×1080
+  viewports. Grips stay visible, elbows are outboard with 80–130° bends, upper
+  arm ends stay outside the view, the third-person rider is hidden, and the
+  cockpit hides in the other four cameras. No browser/shader errors.
+- All **22** cockpit resources (9 geometries, 9 materials, 4 textures) dispose
+  exactly once after repeated teardown; the renderer canvas is removed.
 
-- `npm run build`: passed (TypeScript and production Vite build).
-- Targeted terrain, road grade, grounding, footprint and resource ownership
-  tests: **10/10 passed**.
-- Full suite: **214 passed, 3 failed**. All three failures are existing
-  `tests/core/progressionPacing.test.ts` simulation timeouts, plus a Vitest
-  `onTaskUpdate` RPC timeout. The same three failures reproduce on untouched
-  commit `a84a5ce741ddb983124085a8ee48cdf84cbfc86b`, running that file alone with
-  one worker and no concurrent browser/build. Baseline durations were 9.69s,
-  40.71s and 18.39s against 5s, 30s and 15s timeouts respectively. No core
-  simulation code or existing progression tests are changed.
-- Actual production application: **25/25** stage/camera-control cases; stage
-  labels and real grades verified (including -5% descent and +12% climb), no
-  JavaScript errors or failed asset responses. Raw results are in
-  `production-app-results.json`.
-- Production renderer browser harness: **75/75** stage/grade/camera renders,
-  nonblank pixel readback and camera clearance above the rendered terrain,
-  no browser/shader errors; three complete stage
-  cycles retain identical geometry/texture counts. All 14 tracked textures
-  emit disposal exactly once and the canvas is removed on repeated teardown.
+## Rendering cost
 
-## Rendering performance
+The whole-scene benchmark compares the original checkout against the environment
+renderer at `1b5c520`, before cockpit and surface-travel changes. Its raw records
+are `baseline-browser-results.json` and `production-browser-results.json`.
+It uses ANGLE/SwiftShader **CPU software rendering**, 960 × 600, DPR 1, settled
+Chase camera, displayed 25 km/h, eight warm-up and 15 measured frames per stage.
+Frames include presentation; CPU update measurements exclude rendering. These
+are a software cost comparison, not hardware GPU FPS measurements.
 
-See the original and improved `*-browser-results.json` files for all per-view
-render counts. Measurements use SwiftShader software rendering, not a hardware
-GPU. Frame times include presentation; terrain/prop CPU time excludes renderer
-work. Only 15 warmed samples per stage are taken, so these are a cost comparison
-rather than a sustained frame-rate certification.
-
-| Stage | Original median / p95 ms | Improved median / p95 ms | Draw calls | Triangles | Improved terrain/prop CPU ms |
+| Stage | Original median / p95 ms | Environment median / p95 ms | Draw calls | Triangles | Terrain/prop CPU ms |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | 1 | 254 / 324 | 1100 / 1235 | 1862 → 1143 | 85,564 → 253,220 | 3.3 |
 | 2 | 318 / 350 | 1921 / 2142 | 2102 → 1193 | 91,744 → 397,408 | 5.9 |
@@ -117,217 +107,34 @@ rather than a sustained frame-rate certification.
 | 4 | 272 / 293 | 1527 / 3063 | 1872 → 1096 | 82,856 → 273,450 | 6.6 |
 | 5 | 346 / 370 | 2052 / 2157 | 2168 → 1179 | 98,916 → 226,592 | 7.8 |
 
-Draw calls fall 39–46%, and retained geometries after full stage cycles fall
-from 1,801 to 976 (46%). Total GPU texture counts rise from 4 to 17 and stay
-stable across repeated cycles. The 13 environmental maps are only 256 × 256
-RGBA and shared per ride. Improved terrain/prop CPU updates take 3.3–7.8 ms
-on this environment. Software median frame times rise to 1.10–2.05 seconds
-from 0.25–0.35 seconds: this is a substantial software-rendering regression,
-not proof of meeting a hardware GPU frame budget. A hardware GPU check is
-required before promoting this draft to a target-frame-rate claim.
+Draw calls decrease 39–46%; retained geometry counts decrease 1,801 → 976.
+That snapshot retains 17 GPU textures across stage cycles; the finished cockpit
+owns four textures and is validated separately. Environmental maps are shared
+256 × 256 RGBA assets. Added detail substantially increases SwiftShader raster
+cost despite batching; no measured desktop GPU frame-rate claim is made.
+
+Finished components have these independently measured costs:
+
+- Nearby grass: **2 draw calls / 54,000 triangles** (6,000 instanced clumps).
+- Painted grass terrain: **2 draw calls / 12,000 triangles**; road, shoulders
+  and grass together: 5 draws / 12,600 triangles. Surface scrolling adds no
+  geometry, materials or draw calls.
+- Finished isolated cockpit: **9 draw calls / 23,658 triangles**, versus
+  original 86 draws / 10,518 triangles. Skin/fabric add two 256² RGBA textures,
+  about 0.67 MiB together including mipmaps.
+- Moving terrain/prop updates: **8.4 ms median / 14.0 ms p95**, 30 samples
+  after ten warm-up updates in `terrain-scroll-browser-results.json`. This
+  is CPU update time only, not whole-scene FPS or a same-session comparison
+  with the whole-scene benchmark.
+
+Local manual playtesting reported acceptable performance. Hardware GPU frame
+times have not been instrumented; a sustained target FPS remains unverified.
 
 ## Limits
 
-This remains an illustrated procedural environment, rather than scanned assets
-or photorealism. Mountain vegetation/snow are distant surface shading, clouds
-are a procedural sky layer rather than volumetric weather, and grass blades are
-limited to the nearby verge. Foundations use retaining walls on exaggerated
-slopes. There is one existing near-field shadow map, rather than cascaded
-shadows for the entire landscape. The application bundle still emits Vite's
-existing large-chunk warning.
-
-The available browser uses ANGLE/SwiftShader, a CPU software renderer. Its frame
-times must not be presented as desktop GPU results or evidence of 60 FPS. Added
-geometric/texture detail increases raster cost even when draw calls decrease.
-A desktop GPU frame-budget check remains necessary before asserting a target
-frame rate.
-
-
-## Grass scrolling follow-up
-
-The grass instance updates originally changed only X and Y for road bends and
-crests. Their Z positions stayed fixed while houses and hay rolls advanced,
-so the blades remained static relative to the moving bike. Grass now advances
-by the same travelled world distance as the roadside props, wraps within its
-90-unit verge strip, and samples the rendered terrain again at each new root.
-Blade shape, density, colors and wind strength are unchanged.
-
-Validation of this correction:
-
-- Production build and **12/12** targeted environment/road-grade tests pass.
-  Two new tests cover scrolling/recycling at prop speed, stop behavior, and
-  root contact/road clearance on ±12% slopes and bends after long rides.
-- `node scripts/check-grass-scroll.cjs`: **75/75** production-renderer views
-  (five stages × five cameras × -12%, 0%, +12%). Camera and wind time are
-  frozen and only the actual grass is drawn for the pixel comparison. Every
-  view shows grass movement; all 6,000 roots advance at the same rate as a
-  house and match the shared terrain sampler. Grass remains **2 draw calls /
-  54,000 triangles**, with no browser/shader errors. Results are stored in
-  `grass-scroll-browser-results.json`.
-- Warmed stage-1 terrain/prop CPU updates: median **3.9 ms**,
-  p95 **5.6 ms**, 30 samples after 10 warm-up updates. This is
-  CPU update cost only, not a new whole-scene GPU frame-rate measurement.
-- `grass-scroll-start.png` and `grass-scroll-forward.png` show the full running
-  production renderer at the same fixed Roadside camera and wind time,
-  separated by half a second of world travel at a displayed 25 km/h.
-
-The original full-suite counts and performance table above describe the
-initial overhaul. The user has since run that branch locally and reports
-acceptable performance; local GPU FPS has not been instrumented here.
-
-
-## Grass surface scrolling follow-up
-
-The blade correction above left the terrain's UVs and broad vertex colors
-fixed in the stationary ribbon mesh. The painted grass surface therefore
-stayed fixed while blades and props passed the camera. Surface UVs now sample
-road-local Z minus travelled distance, and the grass's broad color variation
-uses the same moving world coordinate. Asphalt and gravel shoulders also
-scroll at prop speed. Independent repeating phases preserve precision on
-long rides; shared texture offsets stay unchanged, so blades and distant
-mountains keep their own mappings. No geometry, materials or draw calls were
-added, and existing resource ownership/cleanup is unchanged.
-
-Validation of the surface correction:
-
-- Production build and **14/14** targeted environment/road-grade tests pass.
-  The two additional tests isolate texture/color movement from wind, check
-  stops and resets, and cover texture repeats, five stage palettes, steep
-  grades, long rides and unchanged shared map offsets.
-- `node scripts/check-terrain-scroll.cjs`: **75/75** production-renderer views
-  (five stages × five cameras × -12%, 0%, +12%). Only the painted grass terrain is drawn; camera, wind time, vertex positions and normals are
-  frozen during each pixel comparison. Texture phase is checked on every
-  surface vertex. All views change, with at least **8,517** changed grass
-  pixels per frame. The grass terrain remains **2 draw calls / 12,000 triangles**,
-  with no browser errors. Results are in `terrain-scroll-browser-results.json`.
-- Warmed terrain/prop CPU updates: median **8.4 ms**, p95 **14.0 ms**,
-  30 samples after 10 warm-up updates in this browser environment. This is
-  CPU update time, not whole-scene FPS or a same-session comparison against
-  the earlier 3.9 ms sample. No new hardware GPU measurement is available.
-- `terrain-scroll-start.png` and `terrain-scroll-forward.png` show the full
-  running production renderer at the same fixed Roadside camera and wind
-  time, separated by half a second of world travel at a displayed 25 km/h.
-
-These follow-up checks supplement the original whole-scene performance,
-application-stage and resource-disposal checks above.
-
-## First-person arms and handlebar follow-up (initial pass)
-
-The close-up cockpit now uses smooth forearm contours with elliptical muscle
-and wrist sections, slimmer fingerless gloves with curved seams and knuckle
-pads, and individually curled fingers/thumbs around low brake hoods. Curved
-wrapped drop bars replace the faceted straight crossbar. Slim brake levers,
-connected cable housings, bar-end plugs, stem bolts and a smaller forward-mounted
-computer finish the bike fittings. The existing speed readout still updates.
-The entire grip pose moves together with camera/steering/grade; viewport scaling
-keeps both hands visible on narrower screens. Static details merge by material.
-
-Validation:
-
-- `npm run build` and **14/14** environment/road-grade regression tests pass.
-  The existing Vite large-chunk warning remains.
-- `node scripts/check-cockpit.cjs`: **45/45** first-person checks across all
-  five stages and -12%, 0%, +12% slopes at 1440×810, 1920×810 and 810×1080.
-  Projected grips remain inside the view and the third-person rider stays
-  hidden. The cockpit hides in all four other camera modes. No browser errors.
-- All **18** cockpit graphics resources (8 geometries, 8 materials, 2 textures)
-  dispose exactly once after repeated ride teardown, including the bar-tape
-  texture and computer display; the renderer canvas is removed.
-- Isolated cockpit rendering at 1440×810: **86 → 8 draw calls**, and
-  **10,518 → 17,282 triangles**. Small fittings use fewer segments; the added
-  6,764 triangles support the curved surfaces and contours. Draw counts are
-  measured from the running production renderer with other meshes hidden.
-  These counts do not establish hardware GPU frame time or whole-scene FPS.
-- `cockpit-before.png` / `cockpit-after.png` are comparable full-game production
-  captures at stage 1, First person, zero grade/travel, fixed wind time 2 seconds,
-  displayed speed 25 km/h, 1440×810 and DPR 1. The before bundle uses the actual
-  implementation at `8058c6b`; the after bundle uses the cockpit at `3047815`. The
-  camera, scenery and game state are identical, and neither screenshot is
-  altered after capture. Raw checks are in `cockpit-browser-results.json`.
-
-The body and hands remain procedurally modeled within the game's illustrated
-style. They are a rigid grip pose with the existing camera/steering movement,
-rather than a skeletal character animation or an independently articulated
-braking simulation.
-
-
-## First-person anatomy and surface revision
-
-The initial cockpit pass improved bike fittings but left conspicuous separate
-wrist spheres and bulky glove palms. This revision removes the wrist spheres
-and cuff blobs. Continuous shaped glove sections overlap the forearm end,
-forming a fitted wrist, palm heel, flatter hand back and knuckle region. The
-fingerless glove ends in separated fingers curled around slimmer brake hoods.
-Muscle/wrist taper, less orange skin tones, restrained skin mottling/pores,
-fabric weave, panel/cuff stitching and small fingernails support the close view.
-The stem, crossbar and drops have slimmer proportions.
-
-Validation:
-
-- Production build and **14/14** environment/road-grade tests pass; the existing
-  bundle-size warning remains.
-- **45/45** first-person checks across five stages, ±12%/flat grades, and the
-  same desktop, wide and portrait viewports pass. Both grips stay in view;
-  the cockpit hides in the other four cameras; no browser errors.
-- All **22** cockpit resources (9 geometries, 9 materials, 4 textures) dispose
-  exactly once after repeated ride teardown. The new skin and fabric textures
-  join the owned texture list rather than leaking across rides.
-- Isolated rendering: **8 → 9 draw calls**, **17,282 → 20,778 triangles**,
-  compared with the initial cockpit pass. The extra material is for fingernails;
-  the extra triangles shape the fitted hand and finger contours. Skin/fabric
-  add two 256×256 RGBA textures (about 0.67 MiB together including mipmaps).
-  These cost counts do not establish hardware FPS or photorealism.
-- `cockpit-realism-before.png` / `cockpit-realism-after.png` show the full
-  running game with the same first-person camera/state as the initial pair.
-  The `-detail.png` pair is captured directly from the same canvas using an
-  identical 960×280 browser screenshot rectangle, making the hand/wrist shape
-  comparison easier to inspect. No images are altered after capture.
-  The before bundle uses `3047815`; the after bundle uses this revision.
-  Raw checks are in `cockpit-realism-browser-results.json`. Reproduce with:
-
-```sh
-COCKPIT_BASELINE=304781553180e190b1c165d1a7573a9283ce2a27 COCKPIT_PREFIX=cockpit-realism node scripts/check-cockpit.cjs
-```
-
-This remains a procedural game model with a fixed grip and conventional
-surface lighting. Skin detail is restrained; it does not reproduce scanned
-anatomy, skin subsurface scattering, or articulated tendons during braking.
-
-## Bent-arm riding posture
-
-The previous viewmodel only showed long forearms emerging from the bottom
-corners, so surface detail could not fix its straight-stick silhouette. Both
-arms now include an upper arm, a visible outboard elbow bend and a shorter
-forearm reaching inward to the hood. One continuous mesh follows that pose,
-with rounded muscle/elbow contours and a forward wrist transition into the
-glove. The upper ends continue outside the camera view so portrait/downhill
-views do not reveal a severed end. Bike fittings, hand grip, camera settings,
-textures and movement remain as in the preceding revision.
-
-Validation:
-
-- Production build and **14/14** environment/road-grade tests pass; Vite's
-  existing large-chunk warning remains.
-- **45/45** first-person stage/grade/aspect checks pass. The browser regression
-  now also checks the actual arm pose: two bent arms, elbow angles between
-  80° and 130°, elbows outboard of the wrists, upper-arm controls outside
-  the view, and grips visible at all checked slopes/aspects. The arm joints
-  project correctly through the same camera as the running game.
-- Cockpit rendering remains **9 draw calls**. Geometry rises from **20,778
-  to 23,658 triangles** (2,880 added) to resolve both upper arms and bends.
-  All **22** cockpit resources still dispose exactly once, including the
-  same four owned textures; there are no browser errors or retained canvases.
-  Geometry/submission counts do not establish hardware FPS.
-- `cockpit-bent-before.png` / `cockpit-bent-after.png` capture the same running
-  game camera/state, comparing the actual straight-arm version at `8e58d13`
-  with this pose. The full views show the upper arms and elbows; the
-  `-detail.png` files use the same browser screenshot rectangle as before.
-  No post-capture image edits. Raw checks: `cockpit-bent-browser-results.json`.
-
-```sh
-COCKPIT_BASELINE=8e58d13920ae31507dceebe8f6b5ba1d45f025ff COCKPIT_PREFIX=cockpit-bent COCKPIT_BENT=1 node scripts/check-cockpit.cjs
-```
-
-The posture is modeled for the first-person camera. The hands still use a
-fixed grip with the existing camera/steering response, and skin lighting
-remains conventional surface shading.
+This remains a procedural illustrated game environment, not scanned assets.
+Clouds are a sky shader rather than volumetric weather; distant mountain
+vegetation and snow are surface shading. Blades cover the nearby verge, and
+there is one near-field shadow map. Houses use retaining foundations on extreme
+arcade slopes. First-person arms use a fixed grip with camera/steering response,
+not skeletal braking animation or skin subsurface scattering.
