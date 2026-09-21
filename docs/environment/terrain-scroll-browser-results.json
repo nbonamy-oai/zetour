@@ -1,0 +1,692 @@
+{
+  "viewport": [
+    960,
+    600
+  ],
+  "fixedWindSeconds": 2,
+  "speedKmh": 25,
+  "worldSpeed": 13.5,
+  "advancePerFrame": 0.225,
+  "results": [
+    {
+      "stage": 1,
+      "grade": -0.12,
+      "camera": 0,
+      "changedPixels": 30630,
+      "maxPhaseError": 0.00001281738281244671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": -0.12,
+      "camera": 1,
+      "changedPixels": 22974,
+      "maxPhaseError": 0.00002807617187494671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": -0.12,
+      "camera": 2,
+      "changedPixels": 61862,
+      "maxPhaseError": 0.00001281738281244671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": -0.12,
+      "camera": 3,
+      "changedPixels": 35929,
+      "maxPhaseError": 0.00001281738281244671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": -0.12,
+      "camera": 4,
+      "changedPixels": 126229,
+      "maxPhaseError": 0.000012817382812668754,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": 0,
+      "camera": 0,
+      "changedPixels": 35546,
+      "maxPhaseError": 0.000012817382812224665,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": 0,
+      "camera": 1,
+      "changedPixels": 14567,
+      "maxPhaseError": 0.00001281738281244671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": 0,
+      "camera": 2,
+      "changedPixels": 73313,
+      "maxPhaseError": 0.00001281738281244671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": 0,
+      "camera": 3,
+      "changedPixels": 37601,
+      "maxPhaseError": 0.00001281738281244671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": 0,
+      "camera": 4,
+      "changedPixels": 149141,
+      "maxPhaseError": 0.00002807617187494671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": 0.12,
+      "camera": 0,
+      "changedPixels": 37154,
+      "maxPhaseError": 0.00001281738281244671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": 0.12,
+      "camera": 1,
+      "changedPixels": 11173,
+      "maxPhaseError": 0.00002807617187450262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": 0.12,
+      "camera": 2,
+      "changedPixels": 68547,
+      "maxPhaseError": 0.00001281738281244671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": 0.12,
+      "camera": 3,
+      "changedPixels": 50879,
+      "maxPhaseError": 0.00002807617187494671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 1,
+      "grade": 0.12,
+      "camera": 4,
+      "changedPixels": 132287,
+      "maxPhaseError": 0.00001281738281244671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": -0.12,
+      "camera": 0,
+      "changedPixels": 21793,
+      "maxPhaseError": 0.00001281738281244671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": -0.12,
+      "camera": 1,
+      "changedPixels": 16694,
+      "maxPhaseError": 0.00001281738281244671,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": -0.12,
+      "camera": 2,
+      "changedPixels": 47486,
+      "maxPhaseError": 0.000012817382812890799,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": -0.12,
+      "camera": 3,
+      "changedPixels": 28711,
+      "maxPhaseError": 0.000012817382812890799,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": -0.12,
+      "camera": 4,
+      "changedPixels": 104825,
+      "maxPhaseError": 0.000012817382812890799,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": 0,
+      "camera": 0,
+      "changedPixels": 30846,
+      "maxPhaseError": 0.000012817382812890799,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": 0,
+      "camera": 1,
+      "changedPixels": 12255,
+      "maxPhaseError": 0.000012817382812890799,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": 0,
+      "camera": 2,
+      "changedPixels": 63385,
+      "maxPhaseError": 0.0000280761718753908,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": 0,
+      "camera": 3,
+      "changedPixels": 33108,
+      "maxPhaseError": 0.000012817382812890799,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": 0,
+      "camera": 4,
+      "changedPixels": 130128,
+      "maxPhaseError": 0.0000280761718753908,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": 0.12,
+      "camera": 0,
+      "changedPixels": 30395,
+      "maxPhaseError": 0.000012817382812890799,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": 0.12,
+      "camera": 1,
+      "changedPixels": 8517,
+      "maxPhaseError": 0.0000280761718753908,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": 0.12,
+      "camera": 2,
+      "changedPixels": 56982,
+      "maxPhaseError": 0.000012817382812890799,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": 0.12,
+      "camera": 3,
+      "changedPixels": 43171,
+      "maxPhaseError": 0.000012817382812890799,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 2,
+      "grade": 0.12,
+      "camera": 4,
+      "changedPixels": 113086,
+      "maxPhaseError": 0.000012817382812890799,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": -0.12,
+      "camera": 0,
+      "changedPixels": 30120,
+      "maxPhaseError": 0.000012817382812890799,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": -0.12,
+      "camera": 1,
+      "changedPixels": 22872,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": -0.12,
+      "camera": 2,
+      "changedPixels": 61627,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": -0.12,
+      "camera": 3,
+      "changedPixels": 35334,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": -0.12,
+      "camera": 4,
+      "changedPixels": 126761,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": 0,
+      "camera": 0,
+      "changedPixels": 35642,
+      "maxPhaseError": 0.00002807617187450262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": 0,
+      "camera": 1,
+      "changedPixels": 14745,
+      "maxPhaseError": 0.000028076171876278977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": 0,
+      "camera": 2,
+      "changedPixels": 72533,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": 0,
+      "camera": 3,
+      "changedPixels": 37116,
+      "maxPhaseError": 0.000028076171876278977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": 0,
+      "camera": 4,
+      "changedPixels": 148382,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": 0.12,
+      "camera": 0,
+      "changedPixels": 36814,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": 0.12,
+      "camera": 1,
+      "changedPixels": 10812,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": 0.12,
+      "camera": 2,
+      "changedPixels": 67958,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": 0.12,
+      "camera": 3,
+      "changedPixels": 50824,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 3,
+      "grade": 0.12,
+      "camera": 4,
+      "changedPixels": 131558,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": -0.12,
+      "camera": 0,
+      "changedPixels": 40732,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": -0.12,
+      "camera": 1,
+      "changedPixels": 30078,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": -0.12,
+      "camera": 2,
+      "changedPixels": 77620,
+      "maxPhaseError": 0.00002807617187450262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": -0.12,
+      "camera": 3,
+      "changedPixels": 42729,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": -0.12,
+      "camera": 4,
+      "changedPixels": 148415,
+      "maxPhaseError": 0.00002807617187450262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": 0,
+      "camera": 0,
+      "changedPixels": 41568,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": 0,
+      "camera": 1,
+      "changedPixels": 18072,
+      "maxPhaseError": 0.00002807617187450262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": 0,
+      "camera": 2,
+      "changedPixels": 83848,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": 0,
+      "camera": 3,
+      "changedPixels": 42290,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": 0,
+      "camera": 4,
+      "changedPixels": 167490,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": 0.12,
+      "camera": 0,
+      "changedPixels": 43894,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": 0.12,
+      "camera": 1,
+      "changedPixels": 14165,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": 0.12,
+      "camera": 2,
+      "changedPixels": 80815,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": 0.12,
+      "camera": 3,
+      "changedPixels": 58970,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 4,
+      "grade": 0.12,
+      "camera": 4,
+      "changedPixels": 151027,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": -0.12,
+      "camera": 0,
+      "changedPixels": 37165,
+      "maxPhaseError": 0.00002807617187450262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": -0.12,
+      "camera": 1,
+      "changedPixels": 27657,
+      "maxPhaseError": 0.000028076171876278977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": -0.12,
+      "camera": 2,
+      "changedPixels": 72333,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": -0.12,
+      "camera": 3,
+      "changedPixels": 41596,
+      "maxPhaseError": 0.000028076171876278977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": -0.12,
+      "camera": 4,
+      "changedPixels": 139985,
+      "maxPhaseError": 0.00001281738281200262,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": 0,
+      "camera": 0,
+      "changedPixels": 40445,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": 0,
+      "camera": 1,
+      "changedPixels": 17817,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": 0,
+      "camera": 2,
+      "changedPixels": 81638,
+      "maxPhaseError": 0.000012817382810226263,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": 0,
+      "camera": 3,
+      "changedPixels": 42448,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": 0,
+      "camera": 4,
+      "changedPixels": 163192,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": 0.12,
+      "camera": 0,
+      "changedPixels": 41207,
+      "maxPhaseError": 0.000012817382813778977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": 0.12,
+      "camera": 1,
+      "changedPixels": 12988,
+      "maxPhaseError": 0.000012817382810226263,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": 0.12,
+      "camera": 2,
+      "changedPixels": 74682,
+      "maxPhaseError": 0.000028076171876278977,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": 0.12,
+      "camera": 3,
+      "changedPixels": 56999,
+      "maxPhaseError": 0.000012817382810226263,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    },
+    {
+      "stage": 5,
+      "grade": 0.12,
+      "camera": 4,
+      "changedPixels": 140165,
+      "maxPhaseError": 0.000028076171872726263,
+      "terrainDrawCalls": 2,
+      "terrainTriangles": 12000
+    }
+  ],
+  "cpu": {
+    "medianMs": 8.400000000372529,
+    "p95Ms": 14
+  },
+  "errors": []
+}

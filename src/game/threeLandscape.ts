@@ -60,10 +60,14 @@ export const terrainHeight = (x: number, z: number): number => {
 interface Ribbon {
   geometry: THREE.BufferGeometry;
   offsets: Float32Array;
+  uvScale: number;
+  terrain: boolean;
 }
 
 const GRASS_FRONT_Z = 10;
 const GRASS_DEPTH = 90;
+const terrainShade = (x: number, z: number): number =>
+  0.8 + Math.sin(x * 0.34 + z * 0.12) * 0.09 + Math.cos(z * 0.24 - x * 0.12) * 0.08;
 
 export class ThreeLandscape {
   readonly root = new THREE.Group();
@@ -122,7 +126,7 @@ export class ThreeLandscape {
     const edgeMaterial = new THREE.MeshStandardMaterial({ color: 0xf3edda, roughness: 1 });
     const gravelMaterial = resources.material("gravel", 0xb7ad8a);
     for (const side of [-1, 1]) {
-      this.addRibbon(side * 5.35, side * 6.1, -0.035, gravelMaterial);
+      this.addRibbon(side * 5.35, side * 6.1, -0.035, gravelMaterial).name = "Gravel shoulder";
       this.addRibbon(side * 5.02, side * 5.12, 0.014, edgeMaterial);
       const material = resources.material("grass", 0x8d9d64);
       this.terrainMaterials.push(material);
@@ -173,7 +177,7 @@ export class ThreeLandscape {
         const x = Math.min(left, right) + Math.abs(right - left) * col / columns;
         vertices.push(x, terrain ? terrainProfile(x, z) : y, z);
         uvs.push(x * (terrain ? 0.65 : 1.1), z * (terrain ? 0.65 : 1.1));
-        const shade = terrain ? 0.8 + Math.sin(x * 0.34 + z * 0.12) * 0.09 + Math.cos(z * 0.24 - x * 0.12) * 0.08 : 1;
+        const shade = terrain ? terrainShade(x, z) : 1;
         colors.push(shade, shade, terrain ? shade * 0.92 : shade);
         if (row < segments && col < columns) {
           const a = row * (columns + 1) + col;
@@ -193,7 +197,7 @@ export class ThreeLandscape {
     mesh.receiveShadow = true;
     mesh.frustumCulled = false;
     this.ground.add(mesh);
-    this.ribbons.push({ geometry, offsets: new Float32Array(vertices) });
+    this.ribbons.push({ geometry, offsets: new Float32Array(vertices), uvScale: terrain ? 0.65 : 1.1, terrain });
     return mesh;
   }
 
@@ -216,13 +220,27 @@ export class ThreeLandscape {
       }
       grass.instanceMatrix.needsUpdate=true;
     });
-    for (const { geometry, offsets } of this.ribbons) {
+    for (const { geometry, offsets, uvScale, terrain } of this.ribbons) {
       const positions = geometry.attributes.position;
+      const uvs = geometry.attributes.uv, colors = geometry.attributes.color;
+      // The mesh is a stationary window onto the world. Props travel toward
+      // positive Z, so its surface samples Z minus travel. Wrap texture phase
+      // independently to retain precision on long rides, without shifting the
+      // shared maps used by blades, mountains and other scenery.
+      const textureTravel = THREE.MathUtils.euclideanModulo(distance * uvScale, 1);
+      const shadeTravel = THREE.MathUtils.euclideanModulo(distance, 2 * Math.PI / 0.12);
       for (let i = 0; i < positions.count; i += 1) {
         positions.setX(i, offsets[i * 3] + roadBend(offsets[i * 3 + 2], distance));
         positions.setY(i, offsets[i * 3 + 1] + roadSurfaceHeight(offsets[i * 3 + 2], this.pitch, this.riderZ));
+        uvs.setY(i, offsets[i * 3 + 2] * uvScale - textureTravel);
+        if (terrain) {
+          const shade = terrainShade(offsets[i * 3], offsets[i * 3 + 2] - shadeTravel);
+          colors.setXYZ(i, shade, shade, shade * 0.92);
+        }
       }
       positions.needsUpdate = true;
+      uvs.needsUpdate = true;
+      if (terrain) colors.needsUpdate = true;
       geometry.computeVertexNormals();
     }
   }

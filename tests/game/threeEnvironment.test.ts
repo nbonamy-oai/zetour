@@ -12,6 +12,55 @@ const surface = (point: THREE.Vector3, distance: number, pitch: number): number 
   terrainHeight(point.x - roadBend(point.z, distance), point.z) + roadSurfaceHeight(point.z, pitch);
 
 describe("3D environment grounding and ownership", () => {
+  it("scrolls terrain color and surface textures with travel, independently of wind and shared maps", () => {
+    const resources = new EnvironmentMaterials(), landscape = new ThreeLandscape(resources);
+    const ribbons = landscape.root.children[0].children.filter(object => object instanceof THREE.Mesh && !(object instanceof THREE.InstancedMesh)) as THREE.Mesh[];
+    const before = ribbons.map(mesh => ({ uv: mesh.geometry.attributes.uv.array.slice(), color: mesh.geometry.attributes.color.array.slice() }));
+    const advance = 13.5 / 60;
+    landscape.update(advance, 2);
+    ribbons.forEach((mesh, index) => {
+      const terrain = mesh.name === "Rolling terrain", scale = terrain ? 0.65 : 1.1;
+      const uv = mesh.geometry.attributes.uv;
+      for (const vertex of [0, 1, uv.count - 1]) {
+        expect(uv.getX(vertex)).toBe(before[index].uv[vertex * 2]);
+        expect(uv.getY(vertex) - before[index].uv[vertex * 2 + 1]).toBeCloseTo(-advance * scale, 4);
+      }
+      if (terrain) expect(mesh.geometry.attributes.color.array).not.toEqual(before[index].color);
+    });
+    const stopped = ribbons.map(mesh => ({ uv: mesh.geometry.attributes.uv.array.slice(), color: mesh.geometry.attributes.color.array.slice() }));
+    landscape.update(advance, 20);
+    ribbons.forEach((mesh, index) => {
+      expect(mesh.geometry.attributes.uv.array).toEqual(stopped[index].uv);
+      expect(mesh.geometry.attributes.color.array).toEqual(stopped[index].color);
+    });
+    for (const surface of ["grass", "asphalt", "gravel"] as const) expect(resources.texture(surface).offset.toArray()).toEqual([0, 0]);
+    disposeRoadObject(landscape.root); resources.dispose();
+  });
+
+  it("keeps surface phase continuous across repeats, stages, slopes, long rides and resets", () => {
+    const resources = new EnvironmentMaterials(), landscape = new ThreeLandscape(resources);
+    const terrain: THREE.Mesh[] = [];
+    landscape.root.traverse(object => { if (object instanceof THREE.Mesh && object.name === "Rolling terrain") terrain.push(object); });
+    const base = terrain.map(mesh => mesh.geometry.attributes.uv.array.slice());
+    for (let stage = 1; stage <= 5; stage++) for (const distance of [1 / 0.65 - 0.01, 1 / 0.65 + 0.01, 100_000, 0]) {
+      landscape.setStage(stage, stage === 4);
+      landscape.setRoadPitch(threeRoadPitch(stage % 2 ? 0.12 : -0.12), 1.1);
+      landscape.update(distance);
+      terrain.forEach((mesh, side) => {
+        const uv = mesh.geometry.attributes.uv, positions = mesh.geometry.attributes.position, color = mesh.geometry.attributes.color;
+        for (const vertex of [0, 35, uv.count - 1]) {
+          const expected = base[side][vertex * 2 + 1] - distance * 0.65;
+          const difference = uv.getY(vertex) - expected;
+          expect(difference - Math.round(difference)).toBeCloseTo(0, 4);
+          const x = positions.getX(vertex) - roadBend(positions.getZ(vertex), distance), z = positions.getZ(vertex) - distance;
+          expect(color.getX(vertex)).toBeCloseTo(0.8 + Math.sin(x * 0.34 + z * 0.12) * 0.09 + Math.cos(z * 0.24 - x * 0.12) * 0.08, 5);
+        }
+      });
+    }
+    terrain.forEach((mesh, side) => expect(mesh.geometry.attributes.uv.array).toEqual(base[side]));
+    disposeRoadObject(landscape.root); resources.dispose();
+  });
+
   it("scrolls grass with the roadside scenery and recycles it into the distant verge", () => {
     const resources = new EnvironmentMaterials(), landscape = new ThreeLandscape(resources);
     const grass: THREE.InstancedMesh[] = [];

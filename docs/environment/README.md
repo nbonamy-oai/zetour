@@ -174,3 +174,39 @@ Validation of this correction:
 The original full-suite counts and performance table above describe the
 initial overhaul. The user has since run that branch locally and reports
 acceptable performance; local GPU FPS has not been instrumented here.
+
+
+## Grass surface scrolling follow-up
+
+The blade correction above left the terrain's UVs and broad vertex colors
+fixed in the stationary ribbon mesh. The painted grass surface therefore
+stayed fixed while blades and props passed the camera. Surface UVs now sample
+road-local Z minus travelled distance, and the grass's broad color variation
+uses the same moving world coordinate. Asphalt and gravel shoulders also
+scroll at prop speed. Independent repeating phases preserve precision on
+long rides; shared texture offsets stay unchanged, so blades and distant
+mountains keep their own mappings. No geometry, materials or draw calls were
+added, and existing resource ownership/cleanup is unchanged.
+
+Validation of the surface correction:
+
+- Production build and **14/14** targeted environment/road-grade tests pass.
+  The two additional tests isolate texture/color movement from wind, check
+  stops and resets, and cover texture repeats, five stage palettes, steep
+  grades, long rides and unchanged shared map offsets.
+- `node scripts/check-terrain-scroll.cjs`: **75/75** production-renderer views
+  (five stages × five cameras × -12%, 0%, +12%). Only the painted grass terrain is drawn; camera, wind time, vertex positions and normals are
+  frozen during each pixel comparison. Texture phase is checked on every
+  surface vertex. All views change, with at least **8,517** changed grass
+  pixels per frame. The grass terrain remains **2 draw calls / 12,000 triangles**,
+  with no browser errors. Results are in `terrain-scroll-browser-results.json`.
+- Warmed terrain/prop CPU updates: median **8.4 ms**, p95 **14.0 ms**,
+  30 samples after 10 warm-up updates in this browser environment. This is
+  CPU update time, not whole-scene FPS or a same-session comparison against
+  the earlier 3.9 ms sample. No new hardware GPU measurement is available.
+- `terrain-scroll-start.png` and `terrain-scroll-forward.png` show the full
+  running production renderer at the same fixed Roadside camera and wind
+  time, separated by half a second of world travel at a displayed 25 km/h.
+
+These follow-up checks supplement the original whole-scene performance,
+application-stage and resource-disposal checks above.
