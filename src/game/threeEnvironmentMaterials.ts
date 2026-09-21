@@ -7,7 +7,7 @@ export const environmentRandom = (seed: number): (() => number) => () => {
   return seed / 4294967296;
 };
 
-export type Surface = "grass" | "asphalt" | "gravel" | "bark" | "straw" | "wound" | "plaster" | "tiles" | "stone" | "wood" | "leaf";
+export type Surface = "grass" | "asphalt" | "gravel" | "bark" | "straw" | "wound" | "plaster" | "tiles" | "stone" | "wood" | "leaf" | "foliage" | "needles";
 
 export class EnvironmentMaterials {
   readonly time = { value: 0 };
@@ -54,12 +54,46 @@ export class EnvironmentMaterials {
         const mortar = y % 32 < 2 || (x + (Math.floor(y / 32) % 2) * 32) % 64 < 2;
         value = mortar ? 0.4 : 0.64 + grain * 0.23 + patch * 0.05;
       }
-      if (surface === "leaf") value = 0.6 + grain * 0.18 + Math.abs(Math.sin(x * 0.12 + y * 0.15)) * 0.2;
+      if (surface === "leaf" || surface === "foliage") value = 0.6 + grain * 0.18 + Math.abs(Math.sin(x * 0.12 + y * 0.15)) * 0.2;
       const i = (y * size + x) * 4;
       pixels[i] = Math.round(value * 255);
       pixels[i + 1] = Math.round(value * 255);
       pixels[i + 2] = Math.round(value * 255);
-      pixels[i + 3] = 255;
+      let alpha=255;
+      if(surface==="foliage") {
+        const nx=(x-127.5)/116, ny=(y-127.5)/124;
+        // Oval leaf with a tapered tip, small edge variation and a midrib.
+        const edge=nx*nx+ny*ny+(ny>0 ? ny*nx*nx*0.2 : 0);
+        alpha=edge<0.94+0.025*Math.sin(y*0.35) ? 255 : 0;
+        if(Math.abs(nx)<0.025 || Math.abs(Math.sin((y+Math.abs(x-128)*0.7)*0.12))<0.08) {
+          pixels[i]=pixels[i+1]=pixels[i+2]=155;
+        }
+      }
+      if(surface==="needles") {pixels[i]=pixels[i+1]=pixels[i+2]=210;alpha=0;}
+      pixels[i + 3] = alpha;
+    }
+    if(surface==="needles") {
+      const draw = (x0:number,y0:number,x1:number,y1:number,width:number,value:number) => {
+        const steps=Math.ceil(Math.hypot(x1-x0,y1-y0)*1.5);
+        for(let step=0;step<=steps;step++) {
+          const x=THREE.MathUtils.lerp(x0,x1,step/steps),y=THREE.MathUtils.lerp(y0,y1,step/steps);
+          for(let dy=-Math.ceil(width);dy<=Math.ceil(width);dy++) for(let dx=-Math.ceil(width);dx<=Math.ceil(width);dx++) {
+            const px=Math.round(x+dx),py=Math.round(y+dy);
+            if(px<0||px>=size||py<0||py>=size||Math.hypot(px-x,py-y)>width)continue;
+            const i=(py*size+px)*4;pixels[i]=pixels[i+1]=pixels[i+2]=value;pixels[i+3]=255;
+          }
+        }
+      };
+      draw(128,0,128,246,1.8,140);
+      for(let level=0;level<12;level++) for(const side of [-1,1]) {
+        const y=18+level*18,reach=88-level*5;
+        draw(128,y,128+side*reach,y+22,1.2,155);
+        for(let needle=0;needle<10;needle++) {
+          const t=0.08+needle*0.09,x=128+side*reach*t,ny=y+22*t;
+          draw(x,ny,x+side*(9+random()*8),ny+12+random()*9,0.85,180+random()*65);
+          draw(x,ny,x+side*(6+random()*6),ny-10-random()*7,0.85,180+random()*65);
+        }
+      }
     }
     const texture = new THREE.DataTexture(pixels, size, size);
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -81,17 +115,19 @@ export class EnvironmentMaterials {
     const material = new THREE.MeshStandardMaterial({
       color, map, bumpMap: wind ? null : map, bumpScale: surface === "bark" ? 0.06 : surface === "plaster" ? 0.015 : surface === "grass" ? 0.018 : 0.035,
       roughness: 0.95, side: wind ? THREE.DoubleSide : THREE.FrontSide,
+      alphaTest: surface === "needles" ? 0.18 : surface === "foliage" ? 0.35 : 0,
+      alphaToCoverage: surface === "foliage" || surface === "needles",
     });
     material.userData.environmentShared = true;
     if (wind) {
-      material.onBeforeCompile = shader => this.addWind(shader);
-      material.customProgramCacheKey = () => "environment-wind-v1";
+      material.onBeforeCompile = shader => this.addWind(shader, surface === "foliage" ? 0.018 : 0.075);
+      material.customProgramCacheKey = () => `environment-wind-${surface}-v2`;
     }
     this.materials.set(key, material);
     return material;
   }
 
-  private addWind(shader: Parameters<THREE.Material["onBeforeCompile"]>[0]): void {
+  private addWind(shader: Parameters<THREE.Material["onBeforeCompile"]>[0], strength: number): void {
     shader.uniforms.environmentTime = this.time;
     shader.vertexShader = `uniform float environmentTime;\n${shader.vertexShader}`.replace("#include <begin_vertex>", `
       #include <begin_vertex>
@@ -100,8 +136,8 @@ export class EnvironmentMaterials {
         windPosition = (instanceMatrix * vec4(position, 1.0)).xyz;
       #endif
       float gust = sin(environmentTime * 1.6 + windPosition.x * 0.63 + windPosition.z * 0.37);
-      transformed.x += gust * 0.075 * uv.y * uv.y;
-      transformed.z += sin(environmentTime * 1.1 + windPosition.x) * 0.035 * uv.y;
+      transformed.x += gust * ${strength.toFixed(3)} * uv.y * uv.y;
+      transformed.z += sin(environmentTime * 1.1 + windPosition.x) * ${(strength*0.45).toFixed(4)} * uv.y;
     `);
   }
 
@@ -109,10 +145,10 @@ export class EnvironmentMaterials {
   windDepth(surface: Surface): THREE.MeshDepthMaterial {
     let material = this.shadows.get(surface);
     if (!material) {
-      material = new THREE.MeshDepthMaterial({depthPacking: THREE.RGBADepthPacking, map: this.texture(surface), side: THREE.DoubleSide});
+      material = new THREE.MeshDepthMaterial({depthPacking: THREE.RGBADepthPacking, map: this.texture(surface), side: THREE.DoubleSide, alphaTest: surface === "needles" ? 0.18 : surface === "foliage" ? 0.35 : 0});
       material.userData.environmentShared = true;
-      material.onBeforeCompile = shader => this.addWind(shader);
-      material.customProgramCacheKey = () => "environment-wind-depth-v1";
+      material.onBeforeCompile = shader => this.addWind(shader, surface === "foliage" ? 0.018 : 0.075);
+      material.customProgramCacheKey = () => `environment-wind-depth-${surface}-v2`;
       this.shadows.set(surface, material);
     }
     return material;

@@ -100,7 +100,7 @@ describe("3D environment grounding and ownership", () => {
 
   it("retains shared assets across stage disposal and releases them once at ride teardown", () => {
     const resources=new EnvironmentMaterials(), first=createEnvironmentTree(resources,1,"oak"), second=createEnvironmentTree(resources,2,"oak");
-    const leaves=resources.geometry("leaves",()=>new THREE.BufferGeometry()), texture=resources.texture("leaf"), material=resources.material("leaf",0x638740,true);
+    const leaves=resources.geometry("leaves",()=>new THREE.BufferGeometry()), texture=resources.texture("foliage"), material=resources.material("foliage",0x638740,true);
     const geometryDispose=vi.spyOn(leaves,"dispose"), textureDispose=vi.spyOn(texture,"dispose"), materialDispose=vi.spyOn(material,"dispose");
     const instances=first.children.find(object=>object instanceof THREE.InstancedMesh) as THREE.InstancedMesh;
     const instanceDispose=vi.spyOn(instances,"dispose");

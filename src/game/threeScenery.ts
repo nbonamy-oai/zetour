@@ -20,19 +20,20 @@ const branch = (a: THREE.Vector3, b: THREE.Vector3, radius: number): THREE.Buffe
 const leafCluster = (needle: boolean): THREE.BufferGeometry => {
   const random = environmentRandom(needle ? 96 : 81);
   const leaves: THREE.BufferGeometry[] = [];
-  for (let i = 0; i < (needle ? 18 : 24); i++) {
-    const leaf = new THREE.BufferGeometry();
-    leaf.setAttribute("position", new THREE.Float32BufferAttribute([0,-1,0, -1,0,0, 0,1,0, 1,0,0],3));
-    leaf.setAttribute("uv", new THREE.Float32BufferAttribute([0.5,0,0,0.5,0.5,1,1,0.5],2));
-    leaf.setIndex([0,1,2,0,2,3]); leaf.computeVertexNormals();
-    leaf.scale(needle ? 0.035 : 0.055, needle ? 0.3 : 0.09, 0.018);
-    leaf.rotateX(random() * Math.PI); leaf.rotateY(random() * Math.PI); leaf.rotateZ(random() * Math.PI);
-    leaf.translate((random() - 0.5) * 0.55, (random() - 0.5) * 0.55, (random() - 0.5) * 0.55);
+  if (needle) {
+    // Three crossed sprigs retain volume from every camera. Fine needles are
+    // cut out of the shared texture, rather than modeled as oversized spikes.
+    for(let i=0;i<3;i++) {
+      const card=new THREE.PlaneGeometry(0.95,0.75);
+      card.rotateY(i*Math.PI/3);leaves.push(card);
+    }
+  } else for (let i=0;i<24;i++) {
+    const leaf=new THREE.PlaneGeometry(0.08,0.12);
+    leaf.rotateX(random()*Math.PI);leaf.rotateY(random()*Math.PI);leaf.rotateZ(random()*Math.PI);
+    leaf.translate((random()-0.5)*0.55,(random()-0.5)*0.55,(random()-0.5)*0.55);
     leaves.push(leaf);
   }
-  const geometry = mergeGeometries(leaves)!;
-  leaves.forEach(leaf => leaf.dispose());
-  return geometry;
+  const geometry=mergeGeometries(leaves)!;leaves.forEach(leaf=>leaf.dispose());return geometry;
 };
 
 export const createEnvironmentTree = (resources: EnvironmentMaterials, seed: number, species: "oak" | "birch" | "fir" | "cypress" | "olive"): THREE.Group => {
@@ -58,7 +59,7 @@ export const createEnvironmentTree = (resources: EnvironmentMaterials, seed: num
   root.add(part(wood, resources.material("bark", species === "birch" ? 0xc9c6ac : species === "olive" ? 0x80735c : 0x78604a)));
   const foliage = new THREE.InstancedMesh(
     resources.geometry(conifer ? "needles" : "leaves", () => leafCluster(conifer)),
-    resources.material("leaf", species === "olive" ? 0x7f9565 : conifer ? 0x426e4d : 0x638740, true),
+    resources.material(conifer ? "needles" : "foliage", species === "olive" ? 0x7f9565 : conifer ? 0x547b56 : 0x638740, true),
     centers.length * 3 + 6,
   );
   const dummy = new THREE.Object3D();
@@ -66,8 +67,11 @@ export const createEnvironmentTree = (resources: EnvironmentMaterials, seed: num
     const center = centers[i % centers.length];
     dummy.position.copy(center).add(new THREE.Vector3((random() - 0.5) * 0.9, (random() - 0.5) * 0.8, (random() - 0.5) * 0.9));
     if (i < 6) dummy.position.set((random() - 0.5) * 0.6, trunkHeight - 0.5 + random() * 0.8, (random() - 0.5) * 0.6);
-    dummy.rotation.set(random() * 2, random() * 6, random() * 2);
-    dummy.scale.setScalar((conifer ? 1.4 : 1.8) + random() * 0.7);
+    if(conifer) {
+      const direction=center.clone();direction.y=0.45;
+      dummy.quaternion.setFromUnitVectors(Y,direction.normalize());
+    } else dummy.rotation.set(random()*2,random()*6,random()*2);
+    dummy.scale.setScalar(conifer && i < 6 ? 0.7+random()*0.3 : (conifer ? 1.4 : 1.8) + random() * 0.7);
     dummy.updateMatrix(); foliage.setMatrixAt(i, dummy.matrix);
     foliage.setColorAt(i, new THREE.Color().setHSL(0.23 + random() * 0.07, 0.23, 0.65 + random() * 0.25));
   }
@@ -76,7 +80,7 @@ export const createEnvironmentTree = (resources: EnvironmentMaterials, seed: num
   foliage.computeBoundingSphere();
   foliage.boundingSphere!.radius += 0.25;
   foliage.castShadow = foliage.receiveShadow = true;
-  foliage.customDepthMaterial = resources.windDepth("leaf"); root.add(foliage);
+  foliage.customDepthMaterial = resources.windDepth(conifer ? "needles" : "foliage"); root.add(foliage);
   root.userData.foliage = foliage; root.userData.foliageCount = foliage.count;
   return root;
 };
@@ -165,14 +169,15 @@ export const groundScenery = (object: THREE.Object3D, distance: number, pitch: n
     const supports = offsets.map(offset => sample(center.clone().add(offset)) - offset.y);
     object.position.y = Math.max(sample(center), ...supports) + 0.04;
     const inverse = object.quaternion.clone().invert();
-    const positions = foundation.geometry.attributes.position;
+    const positions = foundation.geometry.attributes.position, uv=foundation.geometry.attributes.uv;
     offsets.forEach((offset, i) => {
       const foot = object.position.clone().add(offset);
       foot.y = sample(foot) - 0.12;
       foot.sub(object.position).applyQuaternion(inverse).divide(object.scale);
       positions.setXYZ(perimeter.length + i, foot.x, foot.y, foot.z);
+      uv.setY(perimeter.length+i,foot.y*object.scale.y*0.5);
     });
-    positions.needsUpdate = true; foundation.geometry.computeVertexNormals(); foundation.geometry.computeBoundingSphere();
+    positions.needsUpdate = true; uv.needsUpdate=true; foundation.geometry.computeVertexNormals(); foundation.geometry.computeBoundingSphere();
   }
   const plants = object.userData.plants as THREE.InstancedMesh | undefined;
   if (plants) {
@@ -238,7 +243,7 @@ export const createFoundation = (resources: EnvironmentMaterials): { mesh: THREE
     perimeter.push(new THREE.Vector3(THREE.MathUtils.lerp(a[0], b[0], t), 0, THREE.MathUtils.lerp(a[1], b[1], t)));
   }
   const vertices = [...perimeter, ...perimeter].flatMap(v => v.toArray());
-  const uv = [...perimeter, ...perimeter].flatMap((v, i) => [v.x * 0.5 + v.z * 0.5, i < perimeter.length ? 1 : 0]);
+  const uv = [...perimeter, ...perimeter].flatMap((v) => [v.x * 0.5 + v.z * 0.5, 0]);
   const indices: number[] = [];
   for (let i = 0; i < perimeter.length; i++) {
     const next = (i + 1) % perimeter.length;

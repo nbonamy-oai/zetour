@@ -55,10 +55,11 @@ const assert = require('node:assert/strict');
         }
       }
       ride.roadPitch=0;ride.applyGrade();ride.cameraModeIndex=0;
+      ride.landscape.update(ride.travelled,0);ride.updateRoadMotion(0,0);ride.render(10);
       const frameTimes=[],cpuTimes=[];
       for(let i=0;i<23;i++) {
         const start=performance.now();
-        // Exercise the terrain/prop updates at 25km/h, then draw and allow
+        // Exercise the terrain/prop updates at 48.6km/h, then draw and allow
         // presentation. Include CPU updates as well as the software GPU.
         ride.travelled+=13.5/60;
         const cpuStart=performance.now();ride.landscape.update(ride.travelled,i/60);ride.updateRoadMotion(13.5,1/60);const cpu=performance.now()-cpuStart;
@@ -69,7 +70,7 @@ const assert = require('node:assert/strict');
       const r=ride.renderer,gl=r.getContext();
       return {stage,views,medianMs:frameTimes[7],p95Ms:frameTimes[14],cpuMedianMs:cpuTimes[7],calls:r.info.render.calls,triangles:r.info.render.triangles,geometries:r.info.memory.geometries,textures:r.info.memory.textures,gpu:gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)};
     },stage);
-    assert.equal(result.views.length,15);assert(result.views.every(v=>v.pixel[3]>0),'Blank canvas');
+    assert.equal(result.views.length,15);assert(result.views.every(v=>v.pixel[3]>0 && v.pixel.slice(0,3).some(channel=>channel>0)),'Blank canvas');
     results.push(result);console.log(JSON.stringify({...result,views:`${result.views.length} stage/grade/camera combinations`}));
     await page.screenshot({path:resolve(root,`docs/environment/${baseline ? "before" : "after"}/stage-${stage}.png`)});
   }
@@ -91,7 +92,7 @@ const assert = require('node:assert/strict');
   assert.equal(lifecycle.canvases,0);if(!baseline) assert.equal(lifecycle.textureCount,lifecycle.textureDisposals,'Undisposed textures');
   assert.deepEqual(errors,[]);
   await mkdir(resolve(root,'docs/environment'),{recursive:true});
-  await writeFile(resolve(root,`docs/environment/${baseline ? 'baseline' : 'production'}-browser-results.json`),JSON.stringify({viewport:[960,600],dpr:1,results,lifecycle,errors},null,2)+'\n');
+  await writeFile(resolve(root,`docs/environment/${baseline ? 'baseline' : 'production'}-browser-results.json`),JSON.stringify({viewport:[960,600],dpr:1,speedKmh:48.6,camera:'Chase',warmupFrames:8,sampleFrames:15,results,lifecycle,errors},null,2)+'\n');
   await browser.close();await new Promise(resolve=>server.close(resolve));
   console.log('PASS: 75 views, repeated stage transitions, teardown, no browser/shader errors.');
 })().catch(error=>{console.error(error);process.exit(1)});

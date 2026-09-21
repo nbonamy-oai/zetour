@@ -94,7 +94,7 @@ export class ThreeLandscape {
         vec3 d = normalize(direction);
         float h = smoothstep(-0.06, 0.45, d.y);
         vec3 sky = mix(horizon, top, h);
-        vec2 cloudUV = d.xz / max(0.08,d.y) * 1.5 + vec2(time*0.007,time*0.002);
+        vec2 cloudUV = d.xz / max(0.08,d.y) * 4.0 + vec2(time*0.007,time*0.002);
         float density = fbm(cloudUV);
         float cloud = smoothstep(0.52,0.71,density) * smoothstep(0.035,0.16,d.y);
         float light = fbm(cloudUV+vec2(-0.14,0.09));
