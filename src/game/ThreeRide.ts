@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { createCockpit } from "./threeCockpit";
 import { EnvironmentMaterials } from "./threeEnvironmentMaterials";
 import { createEnvironmentTree, createEnvironmentHay, createEnvironmentRock, createPlantedField, createFoundation, createGuardrail, groundScenery, mergeStaticDetails, scenerySetback } from "./threeScenery";
 import { ThreeLandscape, roadBend, roadHeading, threeRoadPitch, applyRoadPitch, roadSurfaceHeight, roadSurfacePitch } from "./threeLandscape";
@@ -957,53 +958,6 @@ const createGantry = (seed: number): THREE.Group => {
   return group;
 };
 
-const createCockpit = (): THREE.Group => {
-  const group = new THREE.Group();
-  const carbon = meshMaterial(0x1c2a31, 0.42);
-  const tape = meshMaterial(0x29383d, 0.94);
-  const skin = meshMaterial(0xd6a17b, 0.8);
-  skin.flatShading = false;
-  group.add(tubeBetween(new THREE.Vector3(0, -0.18, 0.22), new THREE.Vector3(0, 0, -0.09), 0.035, carbon));
-  group.add(tubeBetween(new THREE.Vector3(-0.36, 0, -0.09), new THREE.Vector3(0.36, 0, -0.09), 0.028, carbon));
-  for (const side of [-1, 1]) {
-    const bend = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(side * 0.35, 0, -0.09),
-      new THREE.Vector3(side * 0.4, 0.01, -0.2),
-      new THREE.Vector3(side * 0.42, -0.13, -0.23),
-      new THREE.Vector3(side * 0.4, -0.18, -0.02),
-    ]);
-    group.add(new THREE.Mesh(new THREE.TubeGeometry(bend, 20, 0.029, 10, false), tape));
-    const wrist = new THREE.Vector3(side * 0.37, 0.01, -0.095);
-    const hand = createHand(side, skin);
-    hand.position.set(side * 0.37, 0.01, -0.15);
-    const elbow = new THREE.Vector3(side * 0.59, -0.23, 0.4);
-    const forearm = taperedLimb(elbow, wrist, 0.069, 0.028, skin);
-    const elbowJoint = new THREE.Mesh(new THREE.SphereGeometry(0.069, 16, 12), skin);
-    elbowJoint.position.copy(elbow);
-    group.add(forearm, elbowJoint, hand);
-    const hood = new THREE.Mesh(new THREE.CapsuleGeometry(0.028, 0.085, 4, 8), tape);
-    hood.position.set(side * 0.38, 0.015, -0.23);
-    hood.rotation.x = -0.3;
-    group.add(hood);
-  }
-  const computer = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.025, 0.17), carbon);
-  computer.position.set(0, 0.035, -0.14);
-  const display = document.createElement("canvas");
-  display.width = 192;
-  display.height = 256;
-  const displayTexture = new THREE.CanvasTexture(display);
-  displayTexture.colorSpace = THREE.SRGBColorSpace;
-  const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.094, 0.123), new THREE.MeshBasicMaterial({ map: displayTexture }));
-  screen.rotation.x = -Math.PI / 2;
-  screen.position.set(0, 0.049, -0.14);
-  group.add(computer, screen);
-  group.userData.display = display;
-  group.userData.displayTexture = displayTexture;
-  group.position.set(0, -0.35, -0.7);
-  group.visible = false;
-  return group;
-};
-
 export class ThreeRide {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(53, 16 / 9, 0.1, 600);
@@ -1147,7 +1101,7 @@ export class ThreeRide {
     this.resizeObserver.disconnect();
     this.timer.dispose();
     this.slipstream.dispose();
-    (this.cockpit.userData.displayTexture as THREE.Texture).dispose();
+    (this.cockpit.userData.ownedTextures as THREE.Texture[]).forEach(texture => texture.dispose());
     gameStore.setTemporaryDraftBonus(0);
     disposeRoadObject(this.scene);
     this.environmentMaterials.dispose();
@@ -1244,6 +1198,7 @@ export class ThreeRide {
     const firstPerson = mode === "First person";
     this.rider.visible = !firstPerson;
     this.cockpit.visible = firstPerson;
+    this.cockpit.scale.setScalar(Math.min(1, this.camera.aspect / 1.35));
     this.cockpit.rotation.z = this.rider.rotation.z * 0.2;
     this.cockpit.rotation.x = THREE.MathUtils.clamp(this.roadPitch * 0.2, -0.12, 0.12);
     const pace = Math.round(this.visualSpeed);

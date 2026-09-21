@@ -210,3 +210,42 @@ Validation of the surface correction:
 
 These follow-up checks supplement the original whole-scene performance,
 application-stage and resource-disposal checks above.
+
+## First-person arms and handlebar follow-up
+
+The close-up cockpit now uses smooth forearm contours with elliptical muscle
+and wrist sections, slimmer fingerless gloves with curved seams and knuckle
+pads, and individually curled fingers/thumbs around low brake hoods. Curved
+wrapped drop bars replace the faceted straight crossbar. Slim brake levers,
+connected cable housings, bar-end plugs, stem bolts and a smaller forward-mounted
+computer finish the bike fittings. The existing speed readout still updates.
+The entire grip pose moves together with camera/steering/grade; viewport scaling
+keeps both hands visible on narrower screens. Static details merge by material.
+
+Validation:
+
+- `npm run build` and **14/14** environment/road-grade regression tests pass.
+  The existing Vite large-chunk warning remains.
+- `node scripts/check-cockpit.cjs`: **45/45** first-person checks across all
+  five stages and -12%, 0%, +12% slopes at 1440×810, 1920×810 and 810×1080.
+  Projected grips remain inside the view and the third-person rider stays
+  hidden. The cockpit hides in all four other camera modes. No browser errors.
+- All **18** cockpit graphics resources (8 geometries, 8 materials, 2 textures)
+  dispose exactly once after repeated ride teardown, including the bar-tape
+  texture and computer display; the renderer canvas is removed.
+- Isolated cockpit rendering at 1440×810: **86 → 8 draw calls**, and
+  **10,518 → 17,282 triangles**. Small fittings use fewer segments; the added
+  6,764 triangles support the curved surfaces and contours. Draw counts are
+  measured from the running production renderer with other meshes hidden.
+  These counts do not establish hardware GPU frame time or whole-scene FPS.
+- `cockpit-before.png` / `cockpit-after.png` are comparable full-game production
+  captures at stage 1, First person, zero grade/travel, fixed wind time 2 seconds,
+  displayed speed 25 km/h, 1440×810 and DPR 1. The before bundle uses the actual
+  implementation at `8058c6b`; the after bundle uses the final cockpit. The
+  camera, scenery and game state are identical, and neither screenshot is
+  altered after capture. Raw checks are in `cockpit-browser-results.json`.
+
+The body and hands remain procedurally modeled within the game's illustrated
+style. They are a rigid grip pose with the existing camera/steering movement,
+rather than a skeletal character animation or an independently articulated
+braking simulation.
