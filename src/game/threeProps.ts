@@ -97,14 +97,17 @@ export const createPothole = (): THREE.Group => {
 };
 
 export const disposeRoadObject = (root: THREE.Object3D): void => {
+  const instances = new Set<THREE.InstancedMesh>();
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   root.traverse((child) => {
+    if (child instanceof THREE.InstancedMesh) instances.add(child);
     if (child instanceof THREE.Mesh) geometries.add(child.geometry);
     if (child instanceof THREE.Mesh || child instanceof THREE.Sprite) {
       (Array.isArray(child.material) ? child.material : [child.material]).forEach((entry) => materials.add(entry));
     }
   });
-  geometries.forEach((entry) => entry.dispose());
-  materials.forEach((entry) => entry.dispose());
+  instances.forEach((entry) => entry.dispose());
+  geometries.forEach((entry) => { if (!entry.userData.environmentShared) entry.dispose(); });
+  materials.forEach((entry) => { if (!entry.userData.environmentShared) entry.dispose(); });
 };
