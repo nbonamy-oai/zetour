@@ -1240,7 +1240,7 @@ export class ThreeRide {
     );
     this.applyGrade();
     this.travelled += speed * delta;
-    this.landscape.update(this.travelled);
+    this.landscape.update(this.travelled, this.elapsedMs / 1_000);
     const stage = VISUAL_QA.stage === null ? snapshot.stageDefinition : stages[VISUAL_QA.stage - 1];
     this.updateStage(stage);
     this.targetRiderX = THREE_LANE_X[this.targetLane];

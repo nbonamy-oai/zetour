@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { ThreeGrass } from "./threeGrass";
 
 // Keep the playable foreground straight. Everything farther ahead follows the
 // same curve, so scenery, road markings and encounters stay on the road.
@@ -42,6 +43,7 @@ interface Ribbon {
 export class ThreeLandscape {
   readonly root = new THREE.Group();
   private readonly ground = new THREE.Group();
+  private readonly grass = new ThreeGrass();
   private readonly grassTravel = { value: 0 };
   private pitch = 0;
   private riderZ = 1.1;
@@ -85,6 +87,8 @@ export class ThreeLandscape {
         this.addRibbon(side * (6.1 + band * 18), side * (24.1 + band * 18), -0.08, material, true);
       }
     }
+
+    this.ground.add(this.grass.mesh);
 
     // Broad, irregular ridges give the horizon a silhouette instead of a row
     // of identical cones. They stay distant while roadside objects move past.
@@ -149,23 +153,31 @@ export class ThreeLandscape {
       `).replace("#include <color_fragment>", `
         #include <color_fragment>
         vec2 p = vGrassCoord - vec2(0.0, grassTravel);
-        float patches = grassNoise(p * 0.16);
-        float tufts = grassNoise(p * 1.8);
-        float detail = 1.0 - smoothstep(0.035, 0.16, max(fwidth(p.x), fwidth(p.y)));
-        vec2 bladeCell = floor(p * vec2(13.0, 4.5));
-        vec2 blade = fract(p * vec2(13.0, 4.5));
-        float seed = grassHash(bladeCell);
-        float width = max(fwidth(blade.x), 0.025);
-        float stalk = (1.0 - smoothstep(0.08, 0.08 + width,
-          abs(blade.x - 0.5 - (blade.y - 0.5) * (seed - 0.5))))
-          * smoothstep(0.0, 0.2, blade.y) * (1.0 - smoothstep(0.6, 1.0, blade.y));
-        diffuseColor.rgb *= 0.78 + patches * 0.34 + tufts * 0.14;
-        diffuseColor.rgb += vec3(0.07, 0.055, 0.015) * (patches - 0.5);
-        diffuseColor.rgb *= 1.0 + detail * (stalk * (seed - 0.35) * 0.5
-          + (grassNoise(p * 9.0) - 0.5) * 0.16);
+        float patches = grassNoise(p * 0.19 + grassNoise(p * 0.05) * 3.0);
+        float tufts = grassNoise(p * 2.4);
+        float footprint = max(fwidth(p.x), fwidth(p.y));
+        float detail = 1.0 - smoothstep(0.025, 0.13, footprint);
+        vec2 grain = vec2(p.x + p.y * 0.37, p.y - p.x * 0.37);
+        float fibers = grassNoise(grain * vec2(24.0, 5.0));
+        float crossFibers = grassNoise(vec2(p.x - p.y * 0.61, p.y + p.x * 0.61) * vec2(19.0, 6.0));
+        float thatch = mix(fibers, crossFibers, 0.4);
+        float dry = smoothstep(0.58, 0.82, patches);
+        diffuseColor.rgb *= 0.68 + patches * 0.4 + tufts * 0.18;
+        diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.16, 1.02, 0.74), dry * 0.65);
+        diffuseColor.rgb *= 1.0 + detail * (thatch - 0.5) * 0.38;
+        float grassRelief = detail * (thatch * 0.018 + tufts * 0.008);
+      `).replace("#include <normal_fragment_maps>", `
+        #include <normal_fragment_maps>
+        // Derivative bump shading gives the fine fibers depth in the sun,
+        // while fading subpixel detail keeps the distant fields calm.
+        vec3 grassDx = dFdx(-vViewPosition), grassDy = dFdy(-vViewPosition);
+        vec3 grassRx = cross(grassDy, normal), grassRy = cross(normal, grassDx);
+        float grassDet = dot(grassDx, grassRx);
+        normal = normalize(abs(grassDet) * normal - sign(grassDet)
+          * (dFdx(grassRelief) * grassRx + dFdy(grassRelief) * grassRy));
       `);
     };
-    material.customProgramCacheKey = () => "roadside-grass-v1";
+    material.customProgramCacheKey = () => "roadside-grass-v2";
     return material;
   }
 
@@ -249,8 +261,10 @@ export class ThreeLandscape {
     return mesh;
   }
 
-  update(distance: number): void {
+  update(distance: number, seconds = 0): void {
     this.grassTravel.value = distance;
+    this.grass.update(distance, seconds, (z) => roadBend(z, distance),
+      (x, z) => this.surfaceHeight(x, z, distance));
     for (const { geometry, offsets } of this.ribbons) {
       const positions = geometry.attributes.position;
       for (let i = 0; i < positions.count; i += 1) {
@@ -280,6 +294,7 @@ export class ThreeLandscape {
     const palette = palettes[stage - 1] ?? palettes[0];
     this.skyMaterial.uniforms.top.value.setHex(palette[0]);
     this.skyMaterial.uniforms.horizon.value.setHex(palette[1]);
+    this.grass.setColor(palette[2]);
     this.roadMaterial.color.setHex(gravel ? 0x948168 : 0x343e43);
     this.terrainMaterials.forEach((material) => {
       material.color.setHex(palette[2]);
