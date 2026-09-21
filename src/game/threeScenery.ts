@@ -36,7 +36,7 @@ const leafCluster = (needle: boolean): THREE.BufferGeometry => {
 };
 
 export const createEnvironmentTree = (resources: EnvironmentMaterials, seed: number, species: "oak" | "birch" | "fir" | "cypress" | "olive"): THREE.Group => {
-  const root = new THREE.Group(); root.name = `${species} tree`;
+  const root = new THREE.Group(); root.name = `${species} tree`; root.userData.footprint={radius:3.2,depth:3.2};
   const random = environmentRandom(seed * 93 + 62);
   const conifer = species === "fir" || species === "cypress";
   const trunkHeight = species === "birch" ? 4.2 : conifer ? 4.5 : 2.8;
@@ -71,6 +71,10 @@ export const createEnvironmentTree = (resources: EnvironmentMaterials, seed: num
     dummy.updateMatrix(); foliage.setMatrixAt(i, dummy.matrix);
     foliage.setColorAt(i, new THREE.Color().setHSL(0.23 + random() * 0.07, 0.23, 0.65 + random() * 0.25));
   }
+  // Keep a full-density bound when draw counts fall at distance, including
+  // a little margin for wind. Returning to a near camera cannot clip leaves.
+  foliage.computeBoundingSphere();
+  foliage.boundingSphere!.radius += 0.25;
   foliage.castShadow = foliage.receiveShadow = true;
   foliage.customDepthMaterial = resources.windDepth("leaf"); root.add(foliage);
   root.userData.foliage = foliage; root.userData.foliageCount = foliage.count;
@@ -78,7 +82,7 @@ export const createEnvironmentTree = (resources: EnvironmentMaterials, seed: num
 };
 
 export const createEnvironmentHay = (resources: EnvironmentMaterials, seed: number): THREE.Group => {
-  const root = new THREE.Group(); root.name = "Round straw roll";
+  const root = new THREE.Group(); root.name = "Round straw roll"; root.userData.footprint={radius:1.2,depth:1.2};
   const bale = part(resources.geometry("hay-roll", () => {
     const geometry = new THREE.CylinderGeometry(0.85, 0.85, 1.5, 32, 5, true);
     const p = geometry.attributes.position;
@@ -103,7 +107,7 @@ export const createEnvironmentHay = (resources: EnvironmentMaterials, seed: numb
 };
 
 export const createPlantedField = (resources: EnvironmentMaterials, flowers: boolean, seed: number): THREE.Group => {
-  const root = new THREE.Group(); root.name = flowers ? "Lavender rows" : "Crop rows";
+  const root = new THREE.Group(); root.name = flowers ? "Lavender rows" : "Crop rows"; root.userData.footprint={radius:4.8,depth:4.8};
   const geometry = resources.geometry(flowers ? "lavender" : "crop", () => {
     const stem = new THREE.CylinderGeometry(0.025, 0.045, flowers ? 0.45 : 0.75, 4); stem.translate(0, flowers ? 0.225 : 0.375, 0);
     const bloom = new THREE.SphereGeometry(flowers ? 0.12 : 0.15, 5, 3); bloom.scale(1, flowers ? 1.8 : 0.6, 1); bloom.translate(0, flowers ? 0.43 : 0.65, 0);
@@ -129,7 +133,7 @@ export const createPlantedField = (resources: EnvironmentMaterials, flowers: boo
 };
 
 export const createEnvironmentRock = (resources: EnvironmentMaterials, seed: number): THREE.Group => {
-  const root = new THREE.Group(); root.name = "Weathered roadside rock";
+  const root = new THREE.Group(); root.name = "Weathered roadside rock"; root.userData.footprint={radius:1.2,depth:1.2};
   const geometry = new THREE.IcosahedronGeometry(0.65, 1);
   const random = environmentRandom(seed + 96), p = geometry.attributes.position;
   for (let i = 0; i < p.count; i++) {
@@ -277,4 +281,28 @@ export const mergeStaticDetails = (root: THREE.Group, recursive = false): void =
     entries.forEach(({mesh, geometry}) => {mesh.removeFromParent(); if (!mesh.geometry.userData.environmentShared) mesh.geometry.dispose(); geometry.dispose();});
     root.add(part(geometry, material));
   });
+};
+
+// Reserve whole footprints, including across the moving world's wrap seam.
+// Keep a site on its original side and move it outward until it clears earlier
+// trees/buildings/plots; this also keeps crops and straw out of foundations.
+export const scenerySetback = (x: number, z: number, radius: number, depth: number, occupied: readonly THREE.Object3D[]): number => {
+  const side=Math.sign(x);
+  let setback=Math.max(Math.abs(x),6.1+radius+0.3);
+  for(let pass=0;pass<=occupied.length;pass++) {
+    let changed=false;
+    for(const other of occupied) {
+      const footprint=other.userData.footprint as {radius: number; depth: number} | undefined;
+      if(!footprint || Math.sign(other.userData.baseX)!==side)continue;
+      const separation=Math.abs(z-other.position.z)%180;
+      const dz=Math.min(separation,180-separation);
+      const otherRadius=footprint.radius*Math.max(other.scale.x,other.scale.z);
+      const otherDepth=footprint.depth*Math.max(other.scale.x,other.scale.z);
+      if(dz<depth+otherDepth+0.4 && Math.abs(setback-Math.abs(other.userData.baseX))<radius+otherRadius+0.4) {
+        setback=Math.abs(other.userData.baseX)+radius+otherRadius+0.45;changed=true;
+      }
+    }
+    if(!changed)break;
+  }
+  return side*setback;
 };

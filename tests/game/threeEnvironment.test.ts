@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
 import { EnvironmentMaterials } from "../../src/game/threeEnvironmentMaterials";
 import { ThreeLandscape, terrainHeight, roadBend, roadSurfaceHeight, threeRoadPitch, applyRoadPitch } from "../../src/game/threeLandscape";
-import { createFoundation, createPlantedField, createEnvironmentTree, createGuardrail, groundScenery } from "../../src/game/threeScenery";
+import { createFoundation, createPlantedField, createEnvironmentTree, createGuardrail, groundScenery, scenerySetback } from "../../src/game/threeScenery";
 import { disposeRoadObject } from "../../src/game/threeProps";
 
 const prepare = (root: THREE.Object3D, x: number, z: number, yaw = 0): void => {
@@ -80,6 +80,22 @@ describe("3D environment grounding and ownership", () => {
       }
     }
     disposeRoadObject(post);
+  });
+
+  it("reserves building and field footprints on either side, including across the wrap seam", () => {
+    for(const side of [-1,1]) {
+      const house=new THREE.Object3D(); prepare(house,side*16,-169);
+      house.userData.footprint={radius:2.9,depth:2.9};house.scale.setScalar(1.1);
+      const tree=new THREE.Object3D();prepare(tree,side*21,8);tree.userData.footprint={radius:3.2,depth:3.2};
+      const x=scenerySetback(side*15,9,4.8,4.8,[house,tree]);
+      expect(Math.sign(x)).toBe(side);
+      for(const occupied of [house,tree]) {
+        expect(Math.abs(x-occupied.userData.baseX)).toBeGreaterThan(4.8+occupied.userData.footprint.radius*occupied.scale.x);
+      }
+      expect(Math.abs(x)-4.8).toBeGreaterThan(6.1);
+      // A plot far along the route needs no extra setback.
+      expect(scenerySetback(side*15,-80,4.8,4.8,[house,tree])).toBe(side*15);
+    }
   });
 
   it("retains shared assets across stage disposal and releases them once at ride teardown", () => {

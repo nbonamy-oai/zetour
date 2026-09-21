@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { EnvironmentMaterials } from "./threeEnvironmentMaterials";
-import { createEnvironmentTree, createEnvironmentHay, createEnvironmentRock, createPlantedField, createFoundation, createGuardrail, groundScenery, mergeStaticDetails } from "./threeScenery";
+import { createEnvironmentTree, createEnvironmentHay, createEnvironmentRock, createPlantedField, createFoundation, createGuardrail, groundScenery, mergeStaticDetails, scenerySetback } from "./threeScenery";
 import { ThreeLandscape, roadBend, roadHeading, threeRoadPitch, applyRoadPitch, roadSurfaceHeight, roadSurfacePitch } from "./threeLandscape";
 import { createRoadReward, createPothole, disposeRoadObject } from "./threeProps";
 import { ThreeSlipstream } from "./threeSlipstream";
@@ -690,6 +690,9 @@ const createHouse = (seed: number, resources: EnvironmentMaterials): THREE.Group
   );
   roof.position.y = 2.87;
   roof.rotation.y = Math.PI / 4;
+  roof.material.flatShading = true;
+  const roofUv = roof.geometry.attributes.uv;
+  for (let i=0;i<roofUv.count;i++) roofUv.setX(i,roofUv.getX(i)*8);
   const eaves = new THREE.Mesh(
     new THREE.BoxGeometry(3.86, 0.13, 3.04),
     meshMaterial(seed % 2 ? 0xa94c37 : 0xb85a3f, 0.96),
@@ -699,6 +702,7 @@ const createHouse = (seed: number, resources: EnvironmentMaterials): THREE.Group
   group.userData.foundation = foundation;
   group.userData.foundationPerimeter = perimeter;
   group.name = "Slope-fitted farmhouse";
+  group.userData.footprint = {radius:2.9,depth:2.9};
   const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(0.82, 1.34, 0.12), trimMaterial);
   doorFrame.position.set(0, 0.71, 1.43);
   const door = new THREE.Mesh(
@@ -1369,6 +1373,13 @@ export class ThreeRide {
     this.movingScenery.forEach((object) => { this.roadWorld.remove(object); disposeRoadObject(object); });
     this.movingScenery.length = 0;
     const place = (object: THREE.Object3D, x: number, z: number, yaw = 0): void => {
+      const footprint=object.userData.footprint as {radius:number;depth:number}|undefined;
+      // Trees establish the groves first. Later structures and field props
+      // reserve space around them and one another before terrain grounding.
+      if(footprint && !object.name.endsWith(" tree")) {
+        const scale=Math.max(object.scale.x,object.scale.z);
+        x=scenerySetback(x,z,footprint.radius*scale,footprint.depth*scale,this.movingScenery);
+      }
       object.position.z = z;
       object.userData.baseX = x; object.userData.baseYaw = yaw;
       groundScenery(object, this.travelled, this.roadPitch);

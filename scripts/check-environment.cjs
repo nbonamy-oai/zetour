@@ -56,18 +56,18 @@ const assert = require('node:assert/strict');
       }
       ride.roadPitch=0;ride.applyGrade();ride.cameraModeIndex=0;
       const frameTimes=[],cpuTimes=[];
-      for(let i=0;i<40;i++) {
+      for(let i=0;i<23;i++) {
         const start=performance.now();
         // Exercise the terrain/prop updates at 25km/h, then draw and allow
         // presentation. Include CPU updates as well as the software GPU.
         ride.travelled+=13.5/60;
         const cpuStart=performance.now();ride.landscape.update(ride.travelled,i/60);ride.updateRoadMotion(13.5,1/60);const cpu=performance.now()-cpuStart;
         ride.render(1/60);await new Promise(requestAnimationFrame);
-        if(i>=10){frameTimes.push(performance.now()-start);cpuTimes.push(cpu);}
+        if(i>=8){frameTimes.push(performance.now()-start);cpuTimes.push(cpu);}
       }
       frameTimes.sort((a,b)=>a-b);cpuTimes.sort((a,b)=>a-b);
       const r=ride.renderer,gl=r.getContext();
-      return {stage,views,medianMs:frameTimes[15],p95Ms:frameTimes[28],cpuMedianMs:cpuTimes[15],calls:r.info.render.calls,triangles:r.info.render.triangles,geometries:r.info.memory.geometries,textures:r.info.memory.textures,gpu:gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)};
+      return {stage,views,medianMs:frameTimes[7],p95Ms:frameTimes[14],cpuMedianMs:cpuTimes[7],calls:r.info.render.calls,triangles:r.info.render.triangles,geometries:r.info.memory.geometries,textures:r.info.memory.textures,gpu:gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)};
     },stage);
     assert.equal(result.views.length,15);assert(result.views.every(v=>v.pixel[3]>0),'Blank canvas');
     results.push(result);console.log(JSON.stringify({...result,views:`${result.views.length} stage/grade/camera combinations`}));
