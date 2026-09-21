@@ -95,13 +95,47 @@ export class ThreeLandscape {
           + Math.cos(x * 0.1 - row * 11) * row * 3);
       }
       geometry.computeVertexNormals();
-      const ridge = new THREE.Mesh(geometry, this.mountainMaterial.clone());
+      const material = this.mountainMaterial.clone();
+      this.textureMountains(material, layer);
+      const ridge = new THREE.Mesh(geometry, material);
       ridge.position.set((layer - 1) * 18, 0, -190 - layer * 22);
       this.mountains.add(ridge);
     }
     this.mountains.name = "Mountain backdrop";
     this.root.add(this.mountains);
     this.update(0);
+  }
+
+  private textureMountains(material: THREE.MeshBasicMaterial, layer: number): void {
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.rockDetail = { value: 0.22 * (1 - layer * 0.18) };
+      shader.vertexShader = shader.vertexShader.replace("#include <common>", `
+        #include <common>
+        varying vec2 vRockCoord;
+      `).replace("#include <begin_vertex>", `
+        #include <begin_vertex>
+        vRockCoord = position.xy;
+      `);
+      shader.fragmentShader = shader.fragmentShader.replace("#include <common>", `
+        #include <common>
+        varying vec2 vRockCoord;
+        uniform float rockDetail;
+        float rockHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float rockNoise(vec2 p) {
+          vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(rockHash(i), rockHash(i + vec2(1, 0)), f.x),
+            mix(rockHash(i + vec2(0, 1)), rockHash(i + vec2(1, 1)), f.x), f.y);
+        }
+      `).replace("#include <color_fragment>", `
+        #include <color_fragment>
+        vec2 rock = vRockCoord;
+        float grain = rockNoise(rock * 0.65);
+        float gullies = smoothstep(0.58, 0.82, rockNoise(rock * vec2(0.28, 0.07)
+          + vec2(sin(rock.y * 0.12) * 0.6, 0.0)));
+        diffuseColor.rgb *= 1.0 + rockDetail * ((grain - 0.5) * 0.7 - gullies * 0.5);
+      `);
+    };
+    material.customProgramCacheKey = () => "mountain-rock-detail-v1";
   }
 
   private textureSurface(material: THREE.MeshStandardMaterial, gravel: { value: number }): void {
