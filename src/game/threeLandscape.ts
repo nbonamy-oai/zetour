@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { ThreeGrass } from "./threeGrass";
+import { createSkyMaterial } from "./threeSky";
 
 // Keep the playable foreground straight. Everything farther ahead follows the
 // same curve, so scenery, road markings and encounters stay on the road.
@@ -50,34 +51,21 @@ export class ThreeLandscape {
   private readonly ribbons: Ribbon[] = [];
   private readonly terrainMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly roadMaterial = new THREE.MeshStandardMaterial({ color: 0x343e43, roughness: 1 });
-  private readonly skyMaterial = new THREE.ShaderMaterial({
-    side: THREE.BackSide,
-    depthWrite: false,
-    uniforms: {
-      top: { value: new THREE.Color(0x438ebb) },
-      horizon: { value: new THREE.Color(0xf4e6c5) },
-    },
-    vertexShader: `varying vec3 direction;
-      void main() { direction = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-    fragmentShader: `uniform vec3 top; uniform vec3 horizon; varying vec3 direction;
-      void main() {
-        float h = smoothstep(-0.06, 0.28, normalize(direction).y);
-        gl_FragColor = vec4(mix(horizon, top, h), 1.0);
-        #include <tonemapping_fragment>
-        #include <colorspace_fragment>
-      }`,
-  });
-  private readonly mountainMaterial = new THREE.MeshStandardMaterial({ color: 0x527d84, flatShading: true, roughness: 1 });
+  private readonly skyMaterial = createSkyMaterial();
+  private readonly gravelRoad = { value: 0 };
+  private readonly mountainMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true, fog: false });
   private readonly mountains = new THREE.Group();
 
   constructor() {
     this.root.add(this.ground);
+    this.textureSurface(this.roadMaterial, this.gravelRoad);
     const sky = new THREE.Mesh(new THREE.SphereGeometry(290, 24, 16), this.skyMaterial);
     sky.frustumCulled = false;
     this.root.add(sky);
     this.addRibbon(-5.35, 5.35, 0, this.roadMaterial).name = "Road surface";
     const edgeMaterial = new THREE.MeshStandardMaterial({ color: 0xf3edda, roughness: 1 });
     const gravelMaterial = new THREE.MeshStandardMaterial({ color: 0xb7ad8a, roughness: 1 });
+    this.textureSurface(gravelMaterial, { value: 1 });
     for (const side of [-1, 1]) {
       this.addRibbon(side * 5.35, side * 6.1, -0.035, gravelMaterial);
       this.addRibbon(side * 5.02, side * 5.12, 0.014, edgeMaterial);
@@ -90,37 +78,77 @@ export class ThreeLandscape {
 
     this.ground.add(this.grass.mesh);
 
-    // Broad, irregular ridges give the horizon a silhouette instead of a row
-    // of identical cones. They stay distant while roadside objects move past.
-    for (let layer = 0; layer < 3; layer += 1) {
-      const geometry = new THREE.PlaneGeometry(660, 85, 54, 8);
+    // Separate ridge profiles and folded faces break up the repeated skyline.
+    for (let layer = 0; layer < 4; layer += 1) {
+      const geometry = new THREE.PlaneGeometry(680, 120, 90, 12);
       const positions = geometry.attributes.position;
       for (let i = 0; i < positions.count; i += 1) {
         const x = positions.getX(i);
-        const row = (positions.getY(i) + 42.5) / 85;
-        const ridge = 15 + 15 * Math.sin(x * 0.028 + layer * 2) ** 2 + 10 * Math.sin(x * 0.066 + 0.4) ** 2;
-        // Keep the foot of the ridge below the descending road as well.
-        positions.setY(i, row === 0 ? -180 : -3 + row * ridge);
-        positions.setZ(i, Math.sin(x * 0.045 + row * 4) * 7);
+        const row = (positions.getY(i) + 60) / 120;
+        const peaks = 32 * Math.exp(-(((x + 95 + layer * 27) / 48) ** 2))
+          + 42 * Math.exp(-(((x - 78 + layer * 16) / 39) ** 2))
+          + 26 * Math.exp(-(((x - 215) / 57) ** 2));
+        const ridge = 16 + peaks + 9 * Math.sin(x * 0.043 + layer * 1.9)
+          + 5 * Math.sin(x * 0.113 + layer * 0.7) + 2.5 * Math.cos(x * 0.247 + layer);
+        positions.setY(i, row === 0 ? -240 : -9 + Math.pow(row, 0.9) * ridge);
+        positions.setZ(i, Math.sin(x * 0.038 + row * 7 + layer) * (4 + row * 9)
+          + Math.cos(x * 0.1 - row * 11) * row * 3);
       }
       geometry.computeVertexNormals();
-      const material = this.mountainMaterial.clone();
-      material.color.lerp(new THREE.Color(0xc7d5c8), layer * 0.22);
-      const ridge = new THREE.Mesh(geometry, material);
-      ridge.position.set((layer - 1) * 15, 0, -185 - layer * 27);
+      const ridge = new THREE.Mesh(geometry, this.mountainMaterial.clone());
+      ridge.position.set((layer - 1) * 18, 0, -190 - layer * 22);
       this.mountains.add(ridge);
     }
     this.mountains.name = "Mountain backdrop";
     this.root.add(this.mountains);
-
-    const cloudMaterial = new THREE.MeshBasicMaterial({ color: 0xfff3d9, transparent: true, opacity: 0.7, depthWrite: false, fog: false });
-    for (let i = 0; i < 11; i += 1) {
-      const cloud = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 6), cloudMaterial);
-      cloud.scale.set(9 + i % 3 * 4, 0.9 + i % 2, 3);
-      cloud.position.set(-115 + i * 23, 28 + i % 4 * 6, -150 - i % 3 * 18);
-      this.root.add(cloud);
-    }
     this.update(0);
+  }
+
+  private textureSurface(material: THREE.MeshStandardMaterial, gravel: { value: number }): void {
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.surfaceTravel = this.grassTravel;
+      shader.uniforms.surfaceGravel = gravel;
+      shader.vertexShader = shader.vertexShader.replace("#include <common>", `
+        #include <common>
+        attribute vec2 surfaceCoord;
+        varying vec2 vSurfaceCoord;
+      `).replace("#include <begin_vertex>", `
+        #include <begin_vertex>
+        vSurfaceCoord = surfaceCoord;
+      `);
+      shader.fragmentShader = shader.fragmentShader.replace("#include <common>", `
+        #include <common>
+        uniform float surfaceTravel, surfaceGravel;
+        varying vec2 vSurfaceCoord;
+        float stoneHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float surfaceNoise(vec2 p) {
+          vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(stoneHash(i), stoneHash(i + vec2(1, 0)), f.x),
+            mix(stoneHash(i + vec2(0, 1)), stoneHash(i + vec2(1, 1)), f.x), f.y);
+        }
+      `).replace("#include <color_fragment>", `
+        #include <color_fragment>
+        vec2 surface = vSurfaceCoord - vec2(0.0, surfaceTravel);
+        float grainScale = mix(38.0, 13.0, surfaceGravel);
+        float grain = stoneHash(floor(surface * grainScale));
+        float resolved = 1.0 - smoothstep(0.035, 0.16, max(fwidth(surface.x), fwidth(surface.y)));
+        float mottling = surfaceNoise(surface * 0.9) - 0.5;
+        vec2 pebbleCell = fract(surface * grainScale) - 0.5;
+        float pebble = 1.0 - smoothstep(0.22, 0.48, length(pebbleCell * vec2(1.0, 1.4)));
+        diffuseColor.rgb *= 0.96 + mottling * 0.12 + resolved
+          * ((grain - 0.5) * mix(0.26, 0.48, surfaceGravel) + pebble * surfaceGravel * 0.14);
+        float aggregateRelief = resolved * (surfaceNoise(surface * grainScale) * 0.006
+          + pebble * surfaceGravel * 0.009);
+      `).replace("#include <normal_fragment_maps>", `
+        #include <normal_fragment_maps>
+        vec3 roadDx = dFdx(-vViewPosition), roadDy = dFdy(-vViewPosition);
+        vec3 roadRx = cross(roadDy, normal), roadRy = cross(normal, roadDx);
+        float roadDet = dot(roadDx, roadRx);
+        normal = normalize(abs(roadDet) * normal - sign(roadDet)
+          * (dFdx(aggregateRelief) * roadRx + dFdy(aggregateRelief) * roadRy));
+      `);
+    };
+    material.customProgramCacheKey = () => "road-surface-grain-v2";
   }
 
   private createGrassMaterial(): THREE.MeshStandardMaterial {
@@ -247,8 +275,9 @@ export class ThreeLandscape {
     }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+    const coordinates = vertices.flatMap((_, i) => i % 3 === 0 ? [vertices[i], vertices[i + 2]] : []);
+    geometry.setAttribute("surfaceCoord", new THREE.Float32BufferAttribute(coordinates, 2));
     if (terrain) {
-      const coordinates = vertices.flatMap((_, i) => i % 3 === 0 ? [vertices[i], vertices[i + 2]] : []);
       geometry.setAttribute("grassCoord", new THREE.Float32BufferAttribute(coordinates, 2));
     }
     geometry.setIndex(indices);
@@ -263,6 +292,7 @@ export class ThreeLandscape {
 
   update(distance: number, seconds = 0): void {
     this.grassTravel.value = distance;
+    this.skyMaterial.uniforms.time.value = seconds;
     this.grass.update(distance, seconds, (z) => roadBend(z, distance),
       (x, z) => this.surfaceHeight(x, z, distance));
     for (const { geometry, offsets } of this.ribbons) {
@@ -294,6 +324,8 @@ export class ThreeLandscape {
     const palette = palettes[stage - 1] ?? palettes[0];
     this.skyMaterial.uniforms.top.value.setHex(palette[0]);
     this.skyMaterial.uniforms.horizon.value.setHex(palette[1]);
+    this.skyMaterial.uniforms.cloudCoverage.value = [0.56, 0.47, 0.51, 0.61, 0.49][stage - 1] ?? 0.56;
+    this.gravelRoad.value = gravel ? 1 : 0;
     this.grass.setColor(palette[2]);
     this.roadMaterial.color.setHex(gravel ? 0x948168 : 0x343e43);
     this.terrainMaterials.forEach((material) => {
@@ -301,13 +333,26 @@ export class ThreeLandscape {
     });
     this.mountains.scale.y = [0.3, 0.7, 1.3, 0.55, 1.8][stage - 1] ?? 0.3;
     this.mountains.children.forEach((ridge, layer) => {
-      const mesh = ridge as THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>;
+      const mesh = ridge as THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>;
       const positions = mesh.geometry.attributes.position;
       const colors: number[] = [];
-      const rock = new THREE.Color(stage === 5 ? 0x7b9096 : 0x527d84).lerp(new THREE.Color(0xc7d5c8), layer * 0.22);
+      const rock = new THREE.Color(stage === 5 ? 0x77818b : 0x798476);
+      const forest = new THREE.Color(stage === 4 ? 0x7e8659 : 0x4e7356);
+      const haze = new THREE.Color(palette[1]).lerp(new THREE.Color(palette[0]), 0.25);
+      const normals = mesh.geometry.getAttribute("normal");
+      const sun = new THREE.Vector3(-0.55, 0.7, 0.45).normalize();
       for (let i = 0; i < positions.count; i += 1) {
-        const snow = stage === 5 && positions.getY(i) > 26 + Math.sin(positions.getX(i) * 0.18) * 3;
-        const color = snow ? new THREE.Color(0xecf4ee) : rock;
+        const x = positions.getX(i), y = positions.getY(i);
+        const variation = Math.sin(x * 0.17 + y * 0.3) * Math.cos(y * 0.35 - x * 0.06);
+        const alpine = THREE.MathUtils.smoothstep(y + variation * 5,
+          stage === 3 || stage === 5 ? 13 : 35, stage === 3 || stage === 5 ? 32 : 60);
+        const color = forest.clone().lerp(rock, alpine).multiplyScalar(0.9 + variation * 0.12);
+        const snow = stage === 5 ? THREE.MathUtils.smoothstep(y + variation * 7, 30, 43) : 0;
+        color.lerp(new THREE.Color(0xecf4ee), snow);
+        // Soft baked face lighting prevents dark cliffs in the distant haze.
+        const face = new THREE.Vector3().fromBufferAttribute(normals, i);
+        color.multiplyScalar(1.45 + Math.max(0, face.dot(sun)) * 0.4);
+        color.lerp(haze, 0.32 + layer * 0.15);
         colors.push(color.r, color.g, color.b);
       }
       mesh.material.color.setHex(0xffffff);

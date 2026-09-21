@@ -701,7 +701,7 @@ const createTree = (seed: number, cypress = false): THREE.Group => {
       { x: 0, y: 2.92, z: -0.04, scale: 0.94 },
     ].forEach((part, index) => {
       const crown = new THREE.Mesh(
-        new THREE.DodecahedronGeometry((1.02 + (seed % 3) * 0.08) * part.scale, 0),
+        new THREE.IcosahedronGeometry((1.02 + (seed % 3) * 0.08) * part.scale, 1),
         index === 2
           ? meshMaterial(leafColors[(seed + 1) % leafColors.length], 1)
           : leafMaterial,
