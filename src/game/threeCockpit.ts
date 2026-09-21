@@ -86,13 +86,16 @@ const gloveBody = (glove: THREE.Material): THREE.Mesh => {
   return new THREE.Mesh(geometry, glove);
 };
 
-// Elliptical cross sections taper through the forearm muscle into the wrist.
-// Smooth connected rings avoid the cylinder/sphere joint visible at close range.
-const forearm = (elbow: THREE.Vector3, wrist: THREE.Vector3, skin: THREE.Material): THREE.Mesh => {
-  const curve = new THREE.CatmullRomCurve3([elbow, elbow.clone().lerp(wrist, 0.48).add(new THREE.Vector3(0, 0.018, 0)), wrist]);
-  const profile = [0.045, 0.056, 0.051, 0.038, 0.027, 0.024];
+// A continuous upper arm, rounded elbow and forearm. The upper arm enters
+// from the side of the camera; the forearm reaches inward to the brake hood.
+const bentArm = (upper: THREE.Vector3, elbow: THREE.Vector3, wrist: THREE.Vector3, skin: THREE.Material): THREE.Mesh => {
+  // Continue toward the body beyond the visible upper arm so its open end
+  // stays outside the frustum on portrait views and descending grades too.
+  const entry = upper.clone().add(upper.clone().sub(elbow));
+  const curve = new THREE.CatmullRomCurve3([entry, upper, upper.clone().lerp(elbow, 0.7), elbow, elbow.clone().lerp(wrist, 0.5), wrist.clone().add(new THREE.Vector3(0, 0, 0.045)), wrist]);
+  const profile = [0.058, 0.064, 0.058, 0.052, 0.048, 0.051, 0.042, 0.03, 0.024];
   const positions: number[] = [], uvs: number[] = [], indices: number[] = [];
-  const rings = 24, sides = 20;
+  const rings = 60, sides = 20;
   for (let ring = 0; ring <= rings; ring++) {
     const t = ring / rings, center = curve.getPoint(t), tangent = curve.getTangent(t);
     const across = new THREE.Vector3(0, 1, 0).cross(tangent).normalize();
@@ -141,10 +144,14 @@ export const createCockpit = (): THREE.Group => {
   group.add(curveTube([v(0, 0.006, -0.12), v(0, 0.017, -0.22)], 0.008, carbon));
 
   const grips: THREE.Vector3[] = [];
+  const armPose: { upper: THREE.Vector3; elbow: THREE.Vector3; wrist: THREE.Vector3 }[] = [];
   for (const side of [-1, 1]) {
     const wrist = v(side * 0.355, 0.016, -0.115);
     grips.push(wrist.clone());
-    group.add(forearm(v(side * 0.56, -0.29, 0.4), wrist.clone().add(v(0, 0, 0.016)), skin));
+    const upper = v(side * 0.48, 0.62, 0.55), elbow = v(side * 0.65, 0.1, 0.05);
+    const armWrist = wrist.clone().add(v(0, 0, 0.004));
+    armPose.push({upper: upper.clone(), elbow: elbow.clone(), wrist: armWrist.clone()});
+    group.add(bentArm(upper, elbow, armWrist, skin));
     group.add(curveTube([v(side * 0.32, 0.004, -0.126), v(side * 0.355, 0.006, -0.185), v(side * 0.385, -0.065, -0.27), v(side * 0.39, -0.16, -0.235), v(side * 0.375, -0.18, -0.075)], 0.016, tape, 40));
     group.add(ellipsoid(carbon, v(side * 0.375, -0.18, -0.075), v(0.0165, 0.0165, 0.003)));
     // Low rubber body sits beneath the palm; the raised nose supports fingers.
@@ -185,7 +192,7 @@ export const createCockpit = (): THREE.Group => {
   // All parts move together, including hands, so merging keeps this close-up cheap.
   mergeStaticDetails(group, true);
   group.userData.display = display; group.userData.displayTexture = displayTexture;
-  group.userData.ownedTextures = [displayTexture, wrap, skinSurface, fabric]; group.userData.grips = grips;
+  group.userData.ownedTextures = [displayTexture, wrap, skinSurface, fabric]; group.userData.grips = grips; group.userData.armPose = armPose;
   group.position.set(0, -0.35, -0.7); group.visible = false;
   return group;
 };

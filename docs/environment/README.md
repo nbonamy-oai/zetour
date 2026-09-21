@@ -292,3 +292,42 @@ COCKPIT_BASELINE=304781553180e190b1c165d1a7573a9283ce2a27 COCKPIT_PREFIX=cockpit
 This remains a procedural game model with a fixed grip and conventional
 surface lighting. Skin detail is restrained; it does not reproduce scanned
 anatomy, skin subsurface scattering, or articulated tendons during braking.
+
+## Bent-arm riding posture
+
+The previous viewmodel only showed long forearms emerging from the bottom
+corners, so surface detail could not fix its straight-stick silhouette. Both
+arms now include an upper arm, a visible outboard elbow bend and a shorter
+forearm reaching inward to the hood. One continuous mesh follows that pose,
+with rounded muscle/elbow contours and a forward wrist transition into the
+glove. The upper ends continue outside the camera view so portrait/downhill
+views do not reveal a severed end. Bike fittings, hand grip, camera settings,
+textures and movement remain as in the preceding revision.
+
+Validation:
+
+- Production build and **14/14** environment/road-grade tests pass; Vite's
+  existing large-chunk warning remains.
+- **45/45** first-person stage/grade/aspect checks pass. The browser regression
+  now also checks the actual arm pose: two bent arms, elbow angles between
+  80° and 130°, elbows outboard of the wrists, upper-arm controls outside
+  the view, and grips visible at all checked slopes/aspects. The arm joints
+  project correctly through the same camera as the running game.
+- Cockpit rendering remains **9 draw calls**. Geometry rises from **20,778
+  to 23,658 triangles** (2,880 added) to resolve both upper arms and bends.
+  All **22** cockpit resources still dispose exactly once, including the
+  same four owned textures; there are no browser errors or retained canvases.
+  Geometry/submission counts do not establish hardware FPS.
+- `cockpit-bent-before.png` / `cockpit-bent-after.png` capture the same running
+  game camera/state, comparing the actual straight-arm version at `8e58d13`
+  with this pose. The full views show the upper arms and elbows; the
+  `-detail.png` files use the same browser screenshot rectangle as before.
+  No post-capture image edits. Raw checks: `cockpit-bent-browser-results.json`.
+
+```sh
+COCKPIT_BASELINE=8e58d13920ae31507dceebe8f6b5ba1d45f025ff COCKPIT_PREFIX=cockpit-bent COCKPIT_BENT=1 node scripts/check-cockpit.cjs
+```
+
+The posture is modeled for the first-person camera. The hands still use a
+fixed grip with the existing camera/steering response, and skin lighting
+remains conventional surface shading.

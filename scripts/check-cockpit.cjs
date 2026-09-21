@@ -61,11 +61,16 @@ const assert=require('node:assert/strict');
        const gl=ride.renderer.getContext(),pixels=new Uint8Array(viewport.width*viewport.height*4);
        gl.readPixels(0,0,viewport.width,viewport.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
        let coloredPixels=0;for(let i=0;i<pixels.length;i+=4)if(pixels[i]+pixels[i+1]+pixels[i+2]>30)coloredPixels++;
-       checks.push({stage,grade,viewport,grips,visible:ride.cockpit.visible,riderVisible:ride.rider.visible,coloredPixels});
+       const arms=(ride.cockpit.userData.armPose||[]).map(pose=>{
+        const project=point=>point.clone().applyMatrix4(ride.cockpit.matrixWorld).project(ride.camera).toArray();
+        const from=pose.upper.clone().sub(pose.elbow),to=pose.wrist.clone().sub(pose.elbow);
+        return {upper:project(pose.upper),elbow:project(pose.elbow),wrist:project(pose.wrist),bendDegrees:from.angleTo(to)*180/Math.PI};
+       });
+       checks.push({stage,grade,viewport,grips,arms,visible:ride.cockpit.visible,riderVisible:ride.rider.visible,coloredPixels});
       }
       return checks;
      },viewport);
-     for(const check of checks){assert(check.visible);assert(!check.riderVisible);assert(check.grips[0][0]<0&&check.grips[1][0]>0);for(const grip of check.grips){assert(Math.abs(grip[0])<0.95);assert(grip[1]>-0.95&&grip[1]<0.1);assert(grip[2]>-1&&grip[2]<1);}assert(check.coloredPixels>1000);}
+     for(const check of checks){assert(check.visible);assert(!check.riderVisible);assert(check.grips[0][0]<0&&check.grips[1][0]>0);if(process.env.COCKPIT_BENT){assert.equal(check.arms.length,2);for(const arm of check.arms){assert(arm.bendDegrees>80&&arm.bendDegrees<130);assert(Math.abs(arm.elbow[0])>Math.abs(arm.wrist[0])+0.15);assert(Math.abs(arm.elbow[0])<1.05);assert(Math.abs(arm.upper[0])>1||Math.abs(arm.upper[1])>1);}}for(const grip of check.grips){assert(Math.abs(grip[0])<0.95);assert(grip[1]>-0.95&&grip[1]<0.1);assert(grip[2]>-1&&grip[2]<1);}assert(check.coloredPixels>1000);}
      results.push(...checks);console.log(`PASS: 15 first-person stage/slope views at ${viewport.width} × ${viewport.height}`);
     }
     const cleanup=await page.evaluate(()=>{
